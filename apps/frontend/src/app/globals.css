@@ -1,0 +1,21 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #f2f0eb;
+  --foreground: rgba(0, 0, 0, 0.87);
+}
+
+body {
+  color: var(--foreground);
+  background-color: var(--background);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Hiệu ứng bấm nút Starbucks active:scale-95 */
+.btn-pill {
+  @apply rounded-full font-medium transition-all duration-150 active:scale-95 disabled:opacity-50 disabled:pointer-events-none;
+}
