@@ -6,14 +6,15 @@ FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-# Copy root workspace configs
+# Copy root and all workspace package.json files for lockfile sync
 COPY package*.json ./
 COPY apps/backend/package*.json ./apps/backend/
+COPY apps/frontend/package*.json ./apps/frontend/
 
-# Install all dependencies (including dev)
-RUN npm install
+# Install all dependencies using npm ci (fast and strictly deterministic)
+RUN npm ci
 
-# Copy source code and prisma
+# Copy backend source code and prisma
 COPY apps/backend ./apps/backend
 
 WORKDIR /app/apps/backend
@@ -31,9 +32,8 @@ WORKDIR /app/apps/backend
 
 ENV NODE_ENV=production
 
-# Copy built artifacts and dependencies from builder
+# Copy node_modules and built dist from builder
 COPY --from=builder /app/node_modules /app/node_modules
-COPY --from=builder /app/apps/backend/node_modules ./node_modules
 COPY --from=builder /app/apps/backend/dist ./dist
 COPY --from=builder /app/apps/backend/package*.json ./
 COPY --from=builder /app/apps/backend/prisma ./prisma
