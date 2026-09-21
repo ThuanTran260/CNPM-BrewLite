@@ -16,6 +16,8 @@ import { AppController } from './app.controller';
       },
     ]),
     ScheduleModule.forRoot(),
+    PrismaModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [],

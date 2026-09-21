@@ -1,0 +1,141 @@
+// Prisma Schema cho BrewLite VER 1.0
+// Tuân thủ triệt để ADR-007 và Implementation Plan V4
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  PREPARING
+  READY
+  COMPLETED
+  PAYMENT_FAILED
+  CANCELLED
+}
+
+enum Size {
+  S
+  M
+  L
+}
+
+enum PaymentMethod {
+  E_WALLET
+  BANK_CARD
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+}
+
+enum VoucherType {
+  PERCENT
+  FIXED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  passwordHash  String
+  role          Role     @default(CUSTOMER)
+  loyaltyPoints Int      @default(0)
+  createdAt     DateTime @default(now())
+
+  orders        Order[]
+
+  @@map("users")
+}
+
+model Product {
+  id          String      @id @default(uuid())
+  name        String
+  price       Int
+  description String
+  imageUrl    String
+  stock       Int         @default(100)
+  version     Int         @default(0) // Dùng cho Optimistic Locking khi trừ kho
+  createdAt   DateTime    @default(now())
+
+  orderItems  OrderItem[]
+
+  @@map("products")
+}
+
+model Order {
+  id             String       @id @default(uuid())
+  code           String       @unique // Định dạng #1042, #1043...
+  userId         String
+  status         OrderStatus  @default(PENDING)
+  subtotal       Int
+  discountAmount Int          @default(0)
+  total          Int
+  voucherCode    String?
+  version        Int          @default(0)
+  expiresAt      DateTime?    // Timeout 15 phút cho đơn PENDING
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items          OrderItem[]
+  payments       Payment[]
+
+  @@map("orders")
+}
+
+model OrderItem {
+  id          String   @id @default(uuid())
+  orderId     String
+  productId   String
+  productName String   // Lưu snapshot tên sản phẩm tại thời điểm đặt
+  size        Size     @default(S)
+  toppings    Json?    // Danh sách topping đã chọn: string[]
+  qty         Int      @default(1)
+  unitPrice   Int      // Đơn giá sau khi cộng size và topping
+  lineTotal   Int      // unitPrice * qty
+
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@map("order_items")
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  orderId        String
+  idempotencyKey String        @unique // Chống race condition thanh toán lặp
+  amount         Int
+  method         PaymentMethod
+  status         PaymentStatus
+  createdAt      DateTime      @default(now())
+
+  order          Order         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@map("payments")
+}
+
+model Voucher {
+  code        String      @id @unique
+  type        VoucherType
+  value       Int         // % giảm hoặc số tiền cố định
+  minOrder    Int         @default(0) // Đơn tối thiểu để áp dụng
+  usageLimit  Int?        // Giới hạn số lần dùng
+  usedCount   Int         @default(0)
+  expiresAt   DateTime?
+  createdAt   DateTime    @default(now())
+
+  @@map("vouchers")
+}
