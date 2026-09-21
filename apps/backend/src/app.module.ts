@@ -21,6 +21,7 @@ import { AppController } from './app.controller';
     AuthModule,
     VouchersModule,
     OrdersModule,
+    PaymentsModule,
   ],
   controllers: [AppController],
   providers: [],

@@ -91,3 +91,17 @@ export const ordersApi = {
     return response.data;
   },
 };
+
+export const paymentsApi = {
+  processPayment: async (
+    idempotencyKey: string,
+    data: { orderId: string; method: 'E_WALLET' | 'BANK_CARD'; forceFail?: boolean },
+  ) => {
+    const response = await apiClient.post('/payments', data, {
+      headers: {
+        'Idempotency-Key': idempotencyKey,
+      },
+    });
+    return response.data;
+  },
+};
