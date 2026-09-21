@@ -36,59 +36,74 @@ export default function Navbar() {
           <span className="font-bold text-xl tracking-tight text-white">BrewLite</span>
         </Link>
 
-        {/* Navigation Links */}
-        <nav className="flex items-center space-x-6 text-sm font-medium">
-          <Link href="/" className="text-white hover:text-primary-light transition-colors">
+        {/* Navigation Links (Pure Customer View - No Staff/Admin Link) */}
+        <nav className="flex items-center space-x-8 text-sm font-medium">
+          <Link
+            href="/"
+            className="text-white hover:text-primary-light transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary-light after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
+          >
             Thực đơn
           </Link>
-          <Link href="/orders/history" className="text-white/80 hover:text-white transition-colors">
-            Lịch sử đơn
-          </Link>
           <Link
-            href="/staff"
-            className="text-gold hover:text-white transition-colors font-semibold flex items-center space-x-1"
+            href="/orders/history"
+            className="text-white/80 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
           >
-            <span className="w-2 h-2 rounded-full bg-gold animate-pulse"></span>
-            <span>Quầy Barista</span>
+            Lịch sử đơn
           </Link>
         </nav>
 
-        {/* Actions (Cart & Auth) */}
+        {/* Actions (Cart & High-End Account Profile) */}
         <div className="flex items-center space-x-4">
           {/* Cart Icon */}
           <Link
             href="/cart"
-            className="relative p-2 rounded-full hover:bg-white/10 transition-colors text-white"
+            className="relative p-2.5 rounded-full hover:bg-white/10 active:scale-95 transition-all text-white flex items-center justify-center"
             aria-label="Giỏ hàng"
           >
-            <ShoppingBag className="w-6 h-6" />
+            <ShoppingBag className="w-5 h-5" />
             {mounted && totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary-accent text-white text-xs font-bold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center border-2 border-house shadow-sm animate-scale">
+              <span className="absolute -top-1 -right-1 bg-primary-accent text-white text-[11px] font-extrabold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center border-2 border-house shadow-sm animate-scale">
                 {totalItems}
               </span>
             )}
           </Link>
 
-          {/* Auth Button */}
-          {mounted && userEmail ? (
-            <div className="flex items-center space-x-2 pl-2 border-l border-white/20">
-              <span className="text-xs text-white/80 hidden sm:inline max-w-[120px] truncate">
-                {userEmail}
-              </span>
+          {/* High-End Account Profile Pill (Zero CLS Reserved Container) */}
+          {!mounted ? (
+            <div className="w-28 h-8 rounded-full bg-white/10 animate-pulse" aria-hidden="true" />
+          ) : userEmail ? (
+            <div className="flex items-center space-x-2 bg-white/10 hover:bg-white/[0.14] border border-white/15 rounded-full py-1 pl-1.5 pr-2.5 transition-all duration-300 shadow-sm backdrop-blur-sm">
+              {/* Nested Avatar Circle */}
+              <div className="w-7 h-7 rounded-full bg-primary-accent border border-white/20 flex items-center justify-center text-white text-xs font-bold uppercase shadow-inner select-none">
+                {userEmail.charAt(0).toUpperCase()}
+              </div>
+
+              {/* Email & Tier Details */}
+              <div className="flex flex-col text-left leading-tight max-w-[110px] sm:max-w-[140px]">
+                <span className="text-xs font-semibold text-white truncate" title={userEmail}>
+                  {userEmail}
+                </span>
+                <span className="text-[9px] text-primary-light font-medium tracking-wider uppercase">
+                  Thành viên
+                </span>
+              </div>
+
+              {/* Trailing Logout Button */}
               <button
                 onClick={handleLogout}
-                className="p-1.5 rounded-full hover:bg-white/10 text-white/70 hover:text-white transition-colors"
+                className="p-1 rounded-full text-white/70 hover:text-white hover:bg-white/20 transition-all duration-200 active:scale-90 ml-1"
                 title="Đăng xuất"
+                aria-label="Đăng xuất"
               >
-                <LogOut className="w-4 h-4" />
+                <LogOut className="w-3.5 h-3.5" />
               </button>
             </div>
           ) : (
             <Link
               href="/login"
-              className="btn-pill px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 flex items-center space-x-1"
+              className="btn-pill px-4 py-1.5 bg-white/10 hover:bg-white/20 text-white text-xs font-semibold border border-white/20 flex items-center space-x-1.5 active:scale-95 transition-all duration-200 shadow-sm"
             >
-              <User className="w-3.5 h-3.5" />
+              <User className="w-3.5 h-3.5 text-primary-light" />
               <span>Đăng nhập</span>
             </Link>
           )}
