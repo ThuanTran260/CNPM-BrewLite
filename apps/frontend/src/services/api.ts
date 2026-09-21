@@ -49,3 +49,45 @@ export const authApi = {
     return response.data;
   },
 };
+
+export const vouchersApi = {
+  validateVoucher: async (code: string, subtotal: number) => {
+    const response = await apiClient.post('/vouchers/validate', { code, subtotal });
+    return response.data;
+  },
+};
+
+export const ordersApi = {
+  createOrder: async (data: {
+    items: Array<{ productId: string; size: string; toppings: string[]; qty: number }>;
+    voucherCode?: string;
+  }) => {
+    const response = await apiClient.post('/orders', data);
+    return response.data;
+  },
+
+  getMyOrders: async () => {
+    const response = await apiClient.get('/orders/me');
+    return response.data;
+  },
+
+  getOrderById: async (id: string) => {
+    const response = await apiClient.get(`/orders/${id}`);
+    return response.data;
+  },
+
+  cancelOrder: async (id: string) => {
+    const response = await apiClient.post(`/orders/${id}/cancel`);
+    return response.data;
+  },
+
+  getStaffActiveOrders: async () => {
+    const response = await apiClient.get('/orders/staff/active');
+    return response.data;
+  },
+
+  updateOrderStatus: async (id: string, to: string) => {
+    const response = await apiClient.patch(`/orders/${id}/status`, { to });
+    return response.data;
+  },
+};
