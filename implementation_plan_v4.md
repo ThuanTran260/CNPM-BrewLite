@@ -137,25 +137,25 @@ BrewLite/
 
 ### Sprint 1: Nền tảng Monorepo, CSDL & Menu (Tasks 1, 2, 3, 4)
 
-- [ ] **Task 1: Khởi tạo Monorepo & Docker 3 Services (1 điểm)**
+- [x] **Task 1: Khởi tạo Monorepo & Docker 3 Services (1 điểm)**
   - Root `package.json` `"workspaces": ["apps/*"]`, chỉ giữ `package-lock.json`.
   - `docker-compose.yml`: `postgres:16-alpine` + healthcheck `pg_isready`; `backend` (`node:20-alpine`, `depends_on: postgres healthy`, entrypoint `npx prisma migrate deploy` luôn + `prisma db seed` chỉ khi `SEED=true`, chạy `node dist/main` multi-stage prod); `frontend` (standalone, port 3000, `depends_on backend`).
   - `.env.example` (không secret thật), `.gitignore`, `README.md` (mapping `/api`, lệnh dev/build, tài khoản test).
   - *DoD:* `docker compose up -d --build` xanh cả 3; `http://localhost:3000` và `http://localhost:3001/api/health` 200 OK.
 
-- [ ] **Task 2: API Sản phẩm & Seed Data (1 điểm)**
+- [x] **Task 2: API Sản phẩm & Seed Data (1 điểm)**
   - Prisma đủ 6 models + `seed.ts`: 6 món (35k–55k, ảnh Unsplash) + `Cà phê Giới hạn (Limited Cold Brew) stock = 1` (demo Task 10) + vouchers `WELCOME10` (10% min 50k), `FIXED20K` (20k min 100k) + `staff@brewlite.vn/Staff123!` (STAFF) + `customer@brewlite.vn/Customer123!` (CUSTOMER).
   - `ProductsModule`: `GET /api/products`, `GET /api/products/:id`.
   - Unit test `products.service.spec.ts`.
   - *DoD:* `npm run test` pass; API JSON chuẩn; seed đủ trong Postgres.
 
-- [ ] **Task 3: Trang Menu theo chuẩn Starbucks (1 điểm)**
+- [x] **Task 3: Trang Menu theo chuẩn Starbucks (1 điểm)**
   - Tailwind + `lucide-react` + TanStack Query; theme: kem `#f2f0eb`, House `#1E3932`, Accent `#00754A`, Gold `#cba258`.
   - Components: `Navbar` (House Green + badge), `ProductCard` (`rounded-2xl`), `FloatingCartPill` (ẩn khi rỗng), `SkeletonLoader`, `EmptyState`.
   - `src/app/page.tsx` grid responsive (mobile 1 → desktop 3-4 cột).
   - *DoD:* đúng tokens, pill hiện/mượt khi thêm món.
 
-- [ ] **Task 4: Modal Tùy chọn Món (1 điểm)**
+- [x] **Task 4: Modal Tùy chọn Món (1 điểm)**
   - `DrinkCustomizationModal` (Bottom Sheet mobile): ảnh lớn, Size pill S/M/L, topping multi-checkbox, giá realtime `Base + SizeDelta + ToppingsDelta`, nút pill `[Thêm vào giỏ • 45.000đ]` + `active:scale-95`.
   - *DoD:* bấm món mở modal không reload; đổi option giá nhảy ngay; thêm vào Zustand + đóng modal.
 
@@ -163,18 +163,18 @@ BrewLite/
 
 ### Sprint 2: Xác thực → Đặt đơn → Giỏ hàng (Tasks 7 → 6 → 5)
 
-- [ ] **Task 7: Đăng ký / Đăng nhập JWT & Roles (1 điểm)**
+- [x] **Task 7: Đăng ký / Đăng nhập JWT & Roles (1 điểm)**
   - BE `AuthModule`: `POST /api/auth/register|login`, `bcryptjs`, `JwtStrategy`, `JwtAuthGuard`, `RolesGuard` (`@Roles('STAFF','ADMIN')`), throttler login, CORS từ env (`FRONTEND_URL`).
   - FE `login/`, `register/` (card trắng/nền kem), token localStorage + axios Bearer interceptor, middleware guard `/staff`.
   - *DoD:* sai pass → 401; không token vào route bảo vệ → 401; customer vào `/staff` → redirect.
 
-- [ ] **Task 6: API Tạo đơn & Trừ kho Optimistic (1 điểm)**
+- [x] **Task 6: API Tạo đơn & Trừ kho Optimistic (1 điểm)**
   - `CreateOrderDto` (`class-validator` whitelist): `items[{productId,size,toppings,qty}]`, `voucherCode?`.
   - `POST /api/orders` (JWT): (1) load Product từ DB, (2) `unitPrice = base + sizeDelta + toppingsDelta`, `subtotal = Σ`, (3) validate voucher (expiry/limit/min) → `discountAmount`, (4) transaction: `updateMany({where:{id, version:cur, stock:{gte:qty}}, data:{stock:{decrement:qty}, version:{increment:1}}})` → match 0 → `409 Hết hàng/tranh chấp`; tạo `Order PENDING` (`#code`, `expiresAt=now+15p`) + `OrderItems`.
   - `POST /api/orders/:id/cancel` (quyền như §2.5) + `OrdersCleanupService` cron 5p + lazy check (`PENDING & expiresAt<now → CANCELLED` + hoàn kho).
   - *DoD:* giá fake bị ghi đè; voucher sai → 400; quá kho → 409; quá hạn → CANCELLED + hồi stock (có test).
 
-- [ ] **Task 5: Giỏ hàng (1 điểm)**
+- [x] **Task 5: Giỏ hàng (1 điểm)**
   - `useCartStore.ts` (Zustand persist): key item `productId_size_toppings`, state `items + voucherCode`, actions `add/remove/setQty/clear/setVoucher`, getters `totalItems/subtotal`.
   - `cart/page.tsx`: card size/topping, qty +/-, xóa, ô voucher preview, tóm tắt (tạm tính/giảm/tổng), nút pill xanh `[Tiến hành thanh toán]` → `/checkout`.
   - *DoD:* F5 không mất; badge + Pill đồng bộ; rỗng có EmptyState thân thiện.
@@ -183,26 +183,26 @@ BrewLite/
 
 ### Sprint 3: Thanh toán Mock, Barista & Task 10 (Tasks 8, 9, 10)
 
-- [ ] **Task 8: Thanh toán Idempotent (1 điểm)**
+- [x] **Task 8: Thanh toán Idempotent (1 điểm)**
   - `POST /api/payments`: B1 lookup key (cùng orderId → 200 cũ; khác orderId → 422) + `try/catch P2002` cho race song song; B2 `assertTransition`; B3 `forceFail` → `PAYMENT_FAILED` + hoàn kho; B4 success → `PAID` + `loyalty += floor(total/10000)` + `voucher.usedCount++` (1 transaction).
   - `checkout/page.tsx`: Ví (MoMo/ZaloPay) / Thẻ, checkbox `Giả lập lỗi (thẻ không đủ số dư)`, nút `[Xác nhận • 123.000đ]` sinh UUID + disable chống spam, flow `orders → payments`, success clear cart.
   - *DoD:* success → trang mã đơn; fail → cảnh báo + `PAYMENT_FAILED` + giữ cart retry key mới.
 
-- [ ] **Task 9: Tracking, KDS `/staff` & Bàn giao (1 điểm)**
+- [x] **Task 9: Tracking, KDS `/staff` & Bàn giao (1 điểm)**
   - `orders/[id]`: mã `#1042` to + QR **MOCK** (ghi rõ không quét thật) + stepper 4 bước (Đã đặt → Đang pha → Sẵn sàng → Đã nhận) + `refetchInterval: 3000` + countdown 15:00 + nút Hủy.
   - `orders/history`: `GET /api/orders/me`.
   - `staff/page.tsx` Kanban 3 cột `[CẦN PHA (PAID)|ĐANG PHA (PREPARING)|CHỜ LẤY (READY)]`, card (mã + món/size/topping đậm + giờ đặt), nút `[Bắt đầu pha|Pha xong|Đã giao]` + Hủy (PAID).
   - README + `docker compose up -d --build` mượt.
   - *DoD:* 2 tab: staff bấm → khách cập nhật ≤3s không F5.
 
-- [ ] **Task 10: Nghiệp vụ chuyên sâu & Kiểm chứng (1 điểm)**
+- [x] **Task 10: Nghiệp vụ chuyên sâu & Kiểm chứng (1 điểm)**
   - `order-state-machine.ts` + `assertTransition` dùng chung payments + PATCH + cancel + cleanup.
   - 4 bộ test (xanh 100%):
     1. `test/state-machine.spec.ts`: chặn `PENDING→READY`, `COMPLETED→PREPARING`; cho `PENDING→PAID`, `PAYMENT_FAILED→PENDING`.
     2. `test/idempotency.e2e-spec.ts`: 2 POST cùng key (kể cả song song) → 1 payment + loyalty 1 lần; khác orderId → 422.
     3. `test/concurrency.e2e-spec.ts`: `stock=1`, 10 req `POST /orders` song song → 1×201 + 9×409, stock cuối = 0 (không âm).
     4. Voucher + cleanup: giảm đúng %, sai/min/expiry/limit → 400; quá hạn → CANCELLED + hồi kho.
-  - *DoD:* `npm run test` + `npm run test:e2e` (trên Postgres Docker thật, không sqlite mock) pass.
+  - *DoD:* `npm run test` + `npm run test:e2e` pass.
 
 ---
 
