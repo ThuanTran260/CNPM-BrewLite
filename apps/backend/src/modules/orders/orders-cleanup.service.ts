@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { assertTransition } from '../../common/state-machine/order-state-machine';
 
 @Injectable()
 export class OrdersCleanupService {
@@ -35,6 +36,8 @@ export class OrdersCleanupService {
 
     for (const order of expiredOrders) {
       try {
+        assertTransition(order.status, OrderStatus.CANCELLED);
+
         await this.prisma.$transaction(async (tx) => {
           // 1. Hoàn lại số lượng tồn kho cho các sản phẩm
           for (const item of order.items) {

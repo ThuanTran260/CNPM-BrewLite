@@ -183,13 +183,32 @@ export default function OrderTrackingPage() {
 
           {/* Trạng thái thất bại / Đã hủy */}
           {isFailedOrCancelled && (
-            <div className="mt-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex items-center justify-center space-x-2">
-              <XCircle className="w-5 h-5 text-red-600 shrink-0" />
-              <span className="font-bold">
-                {order.status === 'PAYMENT_FAILED'
-                  ? 'Giao dịch thanh toán bị từ chối / lỗi số dư'
-                  : 'Đơn hàng đã bị hủy và hoàn lại tồn kho'}
-              </span>
+            <div className="mt-4 p-4 rounded-2xl bg-red-50 border border-red-200 text-red-800 text-xs flex flex-col items-center justify-center space-y-2">
+              <div className="flex items-center space-x-2">
+                <XCircle className="w-5 h-5 text-red-600 shrink-0" />
+                <span className="font-bold">
+                  {order.status === 'PAYMENT_FAILED'
+                    ? 'Giao dịch thanh toán bị từ chối / lỗi số dư'
+                    : 'Đơn hàng đã bị hủy và hoàn lại tồn kho'}
+                </span>
+              </div>
+              {order.status === 'PAYMENT_FAILED' && (
+                <div className="mt-2 flex space-x-3">
+                  <Link
+                    href="/checkout"
+                    className="btn-pill px-4 py-1.5 bg-primary-accent text-white font-bold text-xs"
+                  >
+                    Thử thanh toán lại
+                  </Link>
+                  <button
+                    onClick={() => cancelMutation.mutate()}
+                    disabled={cancelMutation.isPending}
+                    className="btn-pill px-4 py-1.5 bg-white text-red-600 border border-red-200 font-bold text-xs hover:bg-red-50"
+                  >
+                    Hủy đơn hoàn toàn
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -237,16 +256,18 @@ export default function OrderTrackingPage() {
             </div>
           )}
 
-          {/* Mock QR Code nhận món (Tuân thủ ADR-007) */}
-          <div className="mt-6 pt-6 border-t border-ceramic flex flex-col items-center">
-            <div className="w-36 h-36 p-3 bg-white rounded-2xl border border-ceramic shadow-inner flex flex-col items-center justify-center">
-              <QrCode className="w-24 h-24 text-house opacity-80" />
-              <span className="text-[10px] font-mono font-bold text-house mt-1">{order.code}</span>
+          {/* Mock QR Code nhận món (Chỉ hiển thị cho đơn đã thanh toán và đang hoạt động theo ADR-007) */}
+          {(order.status === 'PAID' || order.status === 'PREPARING' || order.status === 'READY') && (
+            <div className="mt-6 pt-6 border-t border-ceramic flex flex-col items-center">
+              <div className="w-36 h-36 p-3 bg-white rounded-2xl border border-ceramic shadow-inner flex flex-col items-center justify-center">
+                <QrCode className="w-24 h-24 text-house opacity-80" />
+                <span className="text-[10px] font-mono font-bold text-house mt-1">{order.code}</span>
+              </div>
+              <p className="mt-2 text-[11px] text-ink-muted italic">
+                * Mã nhận món tại quầy (Bản demo nghiệm thu — không quét thật theo ADR-007)
+              </p>
             </div>
-            <p className="mt-2 text-[11px] text-ink-muted italic">
-              * Mã nhận món tại quầy (Bản demo nghiệm thu — không quét thật theo ADR-007)
-            </p>
-          </div>
+          )}
         </div>
 
         {/* Order Details Breakdown Card */}

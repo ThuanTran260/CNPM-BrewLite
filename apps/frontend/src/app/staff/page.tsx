@@ -17,6 +17,25 @@ import {
 } from 'lucide-react';
 import { ordersApi } from '../../services/api';
 
+function OrderItemsSnippet({ items }: { items: any[] }) {
+  return (
+    <div className="bg-canvas/60 rounded-xl p-3 space-y-1.5 border border-ceramic">
+      {items?.map((item: any) => (
+        <div key={item.id} className="text-xs">
+          <span className="font-extrabold text-house">{item.productName}</span>
+          <span className="text-primary-accent font-bold"> (Size {item.size})</span>
+          <span className="font-bold text-ink"> x{item.qty}</span>
+          {item.toppings && Array.isArray(item.toppings) && item.toppings.length > 0 && (
+            <p className="text-[11px] text-amber-800 font-semibold pl-2">
+              + {item.toppings.join(', ')}
+            </p>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function StaffBaristaPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -56,8 +75,21 @@ export default function StaffBaristaPage() {
     },
   });
 
+  const cancelOrderMutation = useMutation({
+    mutationFn: (orderId: string) => ordersApi.cancelOrder(orderId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['staff-active-orders'] });
+    },
+  });
+
   const handleUpdate = (orderId: string, nextStatus: string) => {
     updateStatusMutation.mutate({ orderId, nextStatus });
+  };
+
+  const handleCancel = (orderId: string) => {
+    if (confirm('Bạn có chắc chắn muốn hủy đơn hàng này? Tồn kho sẽ được tự động hoàn lại cho cửa hàng.')) {
+      cancelOrderMutation.mutate(orderId);
+    }
   };
 
   const handleLogout = () => {
@@ -155,7 +187,7 @@ export default function StaffBaristaPage() {
                   1. Cần Pha Chế (PAID)
                 </h2>
               </div>
-              <span className="bg-blue-100 text-blue-800 text-xs font-black px-2.5 py-0.5 rounded-pill">
+              <span className="bg-primary-accent/15 text-primary-accent border border-primary-accent/30 text-xs font-black px-2.5 py-0.5 rounded-pill">
                 {paidOrders.length}
               </span>
             </div>
@@ -169,7 +201,7 @@ export default function StaffBaristaPage() {
                 paidOrders.map((order: any) => (
                   <div
                     key={order.id}
-                    className="bg-white rounded-2xl border-2 border-blue-200 p-4 shadow-sm hover:shadow-md transition-all space-y-3"
+                    className="bg-white rounded-2xl border-2 border-primary-accent/30 p-4 shadow-sm hover:shadow-md transition-all space-y-3"
                   >
                     <div className="flex items-center justify-between">
                       <span className="text-xl font-black text-house tracking-tight">{order.code}</span>
@@ -179,30 +211,28 @@ export default function StaffBaristaPage() {
                       </span>
                     </div>
 
-                    <div className="bg-canvas/50 rounded-xl p-3 space-y-1.5 border border-ceramic">
-                      {order.items?.map((item: any) => (
-                        <div key={item.id} className="text-xs">
-                          <span className="font-extrabold text-house">{item.productName}</span>
-                          <span className="text-primary-accent font-bold"> (Size {item.size})</span>
-                          <span className="font-bold text-ink"> x{item.qty}</span>
-                          {item.toppings && Array.isArray(item.toppings) && item.toppings.length > 0 && (
-                            <p className="text-[11px] text-amber-800 font-semibold pl-2">
-                              + {item.toppings.join(', ')}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    <OrderItemsSnippet items={order.items} />
 
-                    <button
-                      type="button"
-                      disabled={updateStatusMutation.isPending}
-                      onClick={() => handleUpdate(order.id, 'PREPARING')}
-                      className="btn-pill w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow flex items-center justify-center space-x-1.5"
-                    >
-                      <Flame className="w-3.5 h-3.5" />
-                      <span>Bắt đầu pha chế</span>
-                    </button>
+                    <div className="space-y-2 pt-1">
+                      <button
+                        type="button"
+                        disabled={updateStatusMutation.isPending}
+                        onClick={() => handleUpdate(order.id, 'PREPARING')}
+                        className="btn-pill w-full py-2.5 bg-house hover:bg-house/90 text-white text-xs font-bold shadow flex items-center justify-center space-x-1.5"
+                      >
+                        <Flame className="w-3.5 h-3.5" />
+                        <span>Bắt đầu pha chế</span>
+                      </button>
+
+                      <button
+                        type="button"
+                        disabled={cancelOrderMutation.isPending}
+                        onClick={() => handleCancel(order.id)}
+                        className="btn-pill w-full py-1.5 text-[11px] text-red-600 bg-red-50 hover:bg-red-100 border border-red-200 font-semibold transition-colors"
+                      >
+                        Hủy đơn & hoàn kho
+                      </button>
+                    </div>
                   </div>
                 ))
               )}
@@ -213,12 +243,12 @@ export default function StaffBaristaPage() {
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl border border-ceramic p-4 flex flex-col shadow-soft">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-ceramic">
               <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-amber-500 animate-ping" />
+                <span className="w-3 h-3 rounded-full bg-gold animate-ping" />
                 <h2 className="font-extrabold text-sm uppercase tracking-wider text-house">
                   2. Đang Pha Chế (PREPARING)
                 </h2>
               </div>
-              <span className="bg-amber-100 text-amber-800 text-xs font-black px-2.5 py-0.5 rounded-pill">
+              <span className="bg-gold/20 text-house border border-gold/40 text-xs font-black px-2.5 py-0.5 rounded-pill">
                 {preparingOrders.length}
               </span>
             </div>
@@ -232,35 +262,22 @@ export default function StaffBaristaPage() {
                 preparingOrders.map((order: any) => (
                   <div
                     key={order.id}
-                    className="bg-white rounded-2xl border-2 border-amber-300 p-4 shadow-sm hover:shadow-md transition-all space-y-3"
+                    className="bg-white rounded-2xl border-2 border-gold/40 p-4 shadow-sm hover:shadow-md transition-all space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xl font-black text-amber-900 tracking-tight">{order.code}</span>
-                      <span className="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                      <span className="text-xl font-black text-house tracking-tight">{order.code}</span>
+                      <span className="bg-gold/20 text-house border border-gold/40 text-[10px] font-bold px-2 py-0.5 rounded-pill">
                         Đang làm...
                       </span>
                     </div>
 
-                    <div className="bg-canvas/50 rounded-xl p-3 space-y-1.5 border border-ceramic">
-                      {order.items?.map((item: any) => (
-                        <div key={item.id} className="text-xs">
-                          <span className="font-extrabold text-house">{item.productName}</span>
-                          <span className="text-primary-accent font-bold"> (Size {item.size})</span>
-                          <span className="font-bold text-ink"> x{item.qty}</span>
-                          {item.toppings && Array.isArray(item.toppings) && item.toppings.length > 0 && (
-                            <p className="text-[11px] text-amber-800 font-semibold pl-2">
-                              + {item.toppings.join(', ')}
-                            </p>
-                          )}
-                        </div>
-                      ))}
-                    </div>
+                    <OrderItemsSnippet items={order.items} />
 
                     <button
                       type="button"
                       disabled={updateStatusMutation.isPending}
                       onClick={() => handleUpdate(order.id, 'READY')}
-                      className="btn-pill w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow flex items-center justify-center space-x-1.5"
+                      className="btn-pill w-full py-2.5 bg-gold hover:bg-gold/90 text-house text-xs font-black shadow flex items-center justify-center space-x-1.5"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>Đã pha xong (Sẵn sàng)</span>
@@ -275,12 +292,12 @@ export default function StaffBaristaPage() {
           <div className="bg-white/60 backdrop-blur-sm rounded-3xl border border-ceramic p-4 flex flex-col shadow-soft">
             <div className="flex items-center justify-between pb-3 mb-4 border-b border-ceramic">
               <div className="flex items-center space-x-2">
-                <span className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="w-3 h-3 rounded-full bg-primary-accent" />
                 <h2 className="font-extrabold text-sm uppercase tracking-wider text-house">
                   3. Chờ Lấy Món (READY)
                 </h2>
               </div>
-              <span className="bg-green-100 text-green-800 text-xs font-black px-2.5 py-0.5 rounded-pill">
+              <span className="bg-primary-accent/15 text-primary-accent border border-primary-accent/30 text-xs font-black px-2.5 py-0.5 rounded-pill">
                 {readyOrders.length}
               </span>
             </div>
@@ -294,24 +311,16 @@ export default function StaffBaristaPage() {
                 readyOrders.map((order: any) => (
                   <div
                     key={order.id}
-                    className="bg-white rounded-2xl border-2 border-green-300 p-4 shadow-sm hover:shadow-md transition-all space-y-3"
+                    className="bg-white rounded-2xl border-2 border-primary-accent/40 p-4 shadow-sm hover:shadow-md transition-all space-y-3"
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xl font-black text-green-800 tracking-tight">{order.code}</span>
-                      <span className="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded-md">
+                      <span className="text-xl font-black text-primary-accent tracking-tight">{order.code}</span>
+                      <span className="bg-primary-accent/15 text-primary-accent border border-primary-accent/30 text-[10px] font-bold px-2 py-0.5 rounded-pill">
                         Mời khách lấy
                       </span>
                     </div>
 
-                    <div className="bg-canvas/50 rounded-xl p-3 space-y-1.5 border border-ceramic">
-                      {order.items?.map((item: any) => (
-                        <div key={item.id} className="text-xs">
-                          <span className="font-extrabold text-house">{item.productName}</span>
-                          <span className="text-primary-accent font-bold"> (Size {item.size})</span>
-                          <span className="font-bold text-ink"> x{item.qty}</span>
-                        </div>
-                      ))}
-                    </div>
+                    <OrderItemsSnippet items={order.items} />
 
                     <button
                       type="button"

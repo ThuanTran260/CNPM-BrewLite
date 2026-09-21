@@ -24,7 +24,6 @@ export default function OrderHistoryPage() {
     queryKey: ['my-orders'],
     queryFn: ordersApi.getMyOrders,
     enabled: mounted,
-    refetchInterval: 5000,
   });
 
   if (!mounted || isLoading) {

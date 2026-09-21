@@ -177,15 +177,22 @@ export class OrdersService {
       throw new ForbiddenException('Bạn không có quyền hủy đơn hàng này');
     }
 
-    if (isOwner && !isStaffOrAdmin) {
-      if (order.status !== OrderStatus.PENDING && order.status !== OrderStatus.PAYMENT_FAILED) {
-        throw new BadRequestException('Khách hàng chỉ được hủy đơn khi chưa thanh toán');
+    if (isStaffOrAdmin) {
+      // Nhân viên hoặc Quản trị viên được phép hủy đơn PENDING, PAYMENT_FAILED hoặc PAID (chưa chuyển sang PREPARING)
+      if (
+        order.status !== OrderStatus.PENDING &&
+        order.status !== OrderStatus.PAYMENT_FAILED &&
+        order.status !== OrderStatus.PAID
+      ) {
+        throw new BadRequestException('Chỉ được hủy đơn khi chưa bắt đầu pha chế');
       }
-    }
-
-    if (isStaffOrAdmin && !isOwner) {
-      if (order.status !== OrderStatus.PAID && order.status !== OrderStatus.PENDING) {
-        throw new BadRequestException('Nhân viên chỉ được hủy đơn khi chưa bắt đầu pha chế');
+    } else if (isOwner) {
+      // Khách hàng thông thường chỉ được hủy đơn khi chưa thanh toán (PENDING hoặc PAYMENT_FAILED)
+      if (
+        order.status !== OrderStatus.PENDING &&
+        order.status !== OrderStatus.PAYMENT_FAILED
+      ) {
+        throw new BadRequestException('Khách hàng chỉ được hủy đơn khi chưa thanh toán');
       }
     }
 
