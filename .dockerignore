@@ -1,0 +1,15 @@
+.git
+.gitignore
+README.md
+docs
+design-md
+*.md
+node_modules
+apps/**/node_modules
+apps/backend/dist
+apps/frontend/.next
+apps/frontend/out
+.env
+.env.local
+coverage
+.agents
