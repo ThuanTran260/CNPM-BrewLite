@@ -32,3 +32,20 @@ export const productsApi = {
     return response.data;
   },
 };
+
+export const authApi = {
+  login: async (credentials: { email: string; password: string }) => {
+    const response = await apiClient.post('/auth/login', credentials);
+    return response.data;
+  },
+
+  register: async (credentials: { email: string; password: string }) => {
+    const response = await apiClient.post('/auth/register', credentials);
+    return response.data;
+  },
+
+  getProfile: async () => {
+    const response = await apiClient.get('/auth/me');
+    return response.data;
+  },
+};
