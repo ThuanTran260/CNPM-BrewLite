@@ -5,7 +5,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, ArrowRight, ShoppingBag, Coffee, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
-import Navbar from '../../../components/Navbar';
 import { ordersApi } from '../../../services/api';
 
 export default function OrderHistoryPage() {
@@ -28,12 +27,9 @@ export default function OrderHistoryPage() {
 
   if (!mounted || isLoading) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-10 h-10 rounded-full border-4 border-primary-accent border-t-transparent animate-spin mb-4" />
-          <p className="text-sm font-semibold text-house">Đang tải lịch sử đơn hàng...</p>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-10 h-10 rounded-full border-4 border-primary-accent border-t-transparent animate-spin mb-4" />
+        <p className="text-sm font-semibold text-house">Đang tải lịch sử đơn hàng...</p>
       </div>
     );
   }
@@ -58,10 +54,8 @@ export default function OrderHistoryPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
-      <Navbar />
-
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
+    <div className="flex-1 flex flex-col bg-canvas">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-house tracking-tight mb-6">
           Lịch Sử Đơn Hàng Của Bạn
         </h1>

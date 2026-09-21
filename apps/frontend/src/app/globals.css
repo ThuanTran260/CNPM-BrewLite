@@ -7,6 +7,11 @@
   --foreground: rgba(0, 0, 0, 0.87);
 }
 
+/* Khóa cứng vị trí thanh cuộn ngăn chặn giật layout giữa các trang dài và ngắn */
+html {
+  scrollbar-gutter: stable;
+}
+
 body {
   color: var(--foreground);
   background-color: var(--background);

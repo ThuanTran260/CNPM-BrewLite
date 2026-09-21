@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Providers from './providers';
+import ClientNavbar from '../components/ClientNavbar';
 
 export const metadata: Metadata = {
   title: 'BrewLite — Đặt Cà Phê Không Tiền Mặt',
@@ -14,8 +15,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi">
-      <body className="min-h-screen bg-canvas text-ink antialiased">
+      <body className="min-h-screen bg-canvas text-ink antialiased flex flex-col">
         <Providers>
+          <ClientNavbar />
           {children}
         </Providers>
       </body>

@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { CreditCard, Wallet, ShieldCheck, ArrowRight, AlertTriangle, AlertCircle, CheckCircle, Coffee, Sparkles } from 'lucide-react';
-import Navbar from '../../components/Navbar';
 import { useCartStore } from '../../store/useCartStore';
 import { ordersApi, paymentsApi, vouchersApi } from '../../services/api';
 
@@ -42,15 +41,12 @@ export default function CheckoutPage() {
 
   if (items.length === 0) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <h2 className="text-xl font-bold text-house">Giỏ hàng của bạn đang trống</h2>
-          <p className="mt-2 text-sm text-ink-muted">Vui lòng chọn món trước khi tiến hành thanh toán.</p>
-          <Link href="/" className="btn-pill mt-4 px-6 py-2.5 bg-primary-accent text-white text-xs font-bold shadow-md">
-            Quay lại thực đơn
-          </Link>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <h2 className="text-xl font-bold text-house">Giỏ hàng của bạn đang trống</h2>
+        <p className="mt-2 text-sm text-ink-muted">Vui lòng chọn món trước khi tiến hành thanh toán.</p>
+        <Link href="/" className="btn-pill mt-4 px-6 py-2.5 bg-primary-accent text-white text-xs font-bold shadow-md">
+          Quay lại thực đơn
+        </Link>
       </div>
     );
   }
@@ -103,10 +99,8 @@ export default function CheckoutPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
-      <Navbar />
-
-      <main className="flex-1 max-w-4xl w-full mx-auto px-4 py-8">
+    <div className="flex-1 flex flex-col bg-canvas">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-house tracking-tight mb-2">
           Xác Nhận & Thanh Toán Không Tiền Mặt
         </h1>

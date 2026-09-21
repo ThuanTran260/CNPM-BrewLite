@@ -4,7 +4,6 @@ import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence, useReducedMotion, type Variants } from 'framer-motion';
 import { Sparkles, Coffee } from 'lucide-react';
-import Navbar from '../components/Navbar';
 import ProductCard from '../components/ProductCard';
 import DrinkCustomizationModal from '../components/DrinkCustomizationModal';
 import FloatingCartPill from '../components/FloatingCartPill';
@@ -82,9 +81,7 @@ export default function MenuPage() {
     }) || [];
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-canvas">
       {/* Main Menu Container */}
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         {/* Banner Hero: Cinematic Staggered Reveal + Ambient Glow + Floating Coffee Steam */}

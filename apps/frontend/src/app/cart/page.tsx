@@ -5,7 +5,6 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { Trash2, Plus, Minus, ArrowRight, Tag, ShoppingBag, Coffee, Sparkles, Check, AlertCircle } from 'lucide-react';
-import Navbar from '../../components/Navbar';
 import { useCartStore } from '../../store/useCartStore';
 import { vouchersApi } from '../../services/api';
 
@@ -87,20 +86,18 @@ export default function CartPage() {
   const finalTotal = Math.max(0, subtotal - discountAmount);
   const loyaltyPointsEarned = Math.floor(finalTotal / 10000);
 
-  if (!mounted) {
-    return null;
-  }
-
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
-      <Navbar />
-
+    <div className="flex-1 flex flex-col bg-canvas">
       <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-house tracking-tight mb-6">
           Giỏ Hàng Của Bạn
         </h1>
 
-        {items.length === 0 ? (
+        {!mounted ? (
+          <div className="flex-1 flex items-center justify-center py-16">
+            <div className="w-10 h-10 rounded-full border-4 border-primary-accent border-t-transparent animate-spin" />
+          </div>
+        ) : items.length === 0 ? (
           <div className="bg-white rounded-3xl border border-ceramic p-12 text-center max-w-lg mx-auto shadow-soft my-8">
             <div className="w-20 h-20 rounded-full bg-canvas flex items-center justify-center mx-auto mb-5 text-primary-accent border border-ceramic shadow-inner">
               <ShoppingBag className="w-10 h-10" />

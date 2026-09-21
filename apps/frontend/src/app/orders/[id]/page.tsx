@@ -15,7 +15,6 @@ import {
   Sparkles,
   ShoppingBag,
 } from 'lucide-react';
-import Navbar from '../../../components/Navbar';
 import { ordersApi } from '../../../services/api';
 
 export default function OrderTrackingPage() {
@@ -61,30 +60,24 @@ export default function OrderTrackingPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <div className="w-12 h-12 rounded-full border-4 border-primary-accent border-t-transparent animate-spin mb-4" />
-          <p className="text-sm font-semibold text-house">Đang tải thông tin đơn hàng...</p>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <div className="w-12 h-12 rounded-full border-4 border-primary-accent border-t-transparent animate-spin mb-4" />
+        <p className="text-sm font-semibold text-house">Đang tải thông tin đơn hàng...</p>
       </div>
     );
   }
 
   if (error || !order) {
     return (
-      <div className="min-h-screen bg-canvas flex flex-col">
-        <Navbar />
-        <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
-          <AlertCircle className="w-12 h-12 text-red-600 mb-3" />
-          <h2 className="text-xl font-bold text-house">Không thể tìm thấy đơn hàng</h2>
-          <p className="mt-1 text-xs text-ink-muted max-w-sm">
-            Đơn hàng không tồn tại hoặc bạn không có quyền truy cập.
-          </p>
-          <Link href="/" className="btn-pill mt-4 px-6 py-2.5 bg-primary-accent text-white text-xs font-bold shadow-md">
-            Quay lại trang chủ
-          </Link>
-        </div>
+      <div className="flex-1 flex flex-col items-center justify-center p-6 text-center">
+        <AlertCircle className="w-12 h-12 text-red-600 mb-3" />
+        <h2 className="text-xl font-bold text-house">Không thể tìm thấy đơn hàng</h2>
+        <p className="mt-1 text-xs text-ink-muted max-w-sm">
+          Đơn hàng không tồn tại hoặc bạn không có quyền truy cập.
+        </p>
+        <Link href="/" className="btn-pill mt-4 px-6 py-2.5 bg-primary-accent text-white text-xs font-bold shadow-md">
+          Quay lại trang chủ
+        </Link>
       </div>
     );
   }
@@ -121,11 +114,10 @@ export default function OrderTrackingPage() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-canvas">
-      <Navbar />
-
-      <main className="flex-1 max-w-3xl w-full mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-6">
+    <div className="flex-1 flex flex-col bg-canvas">
+      <main className="flex-1 max-w-6xl w-full mx-auto px-4 py-8">
+        <div className="max-w-3xl mx-auto">
+          <div className="flex items-center justify-between mb-6">
           <Link
             href="/orders/history"
             className="inline-flex items-center space-x-1.5 text-xs font-semibold text-house hover:text-primary-accent"
@@ -312,7 +304,8 @@ export default function OrderTrackingPage() {
             </div>
           </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </main>
+  </div>
   );
 }
