@@ -108,3 +108,16 @@ npm run test:e2e
    * Nhân viên bấm **[Pha xong]** $\rightarrow$ Tab Khách đổi sang `MỜI TỚI QUẦY LẤY NƯỚC`.
    * Nhân viên bấm **[Đã giao]** $\rightarrow$ Đơn hoàn tất `COMPLETED`.
 5. **Kiểm chứng Task 10:** Chạy lệnh `npm run test:e2e` trên terminal để giảng viên xem toàn bộ test nghiệp vụ Concurrency và Idempotency đều PASS.
+
+---
+
+## 7. Tài liệu Kiến trúc & Đặc tả Thiết kế Hệ thống
+
+Toàn bộ tài liệu phân tích và thiết kế hệ thống chuẩn học thuật (Academic-Grade Architecture Spec) được biên soạn tại [docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md](docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md), bao gồm:
+1. **BFD (Business Function Decomposition):** Sơ đồ phân rã chức năng 3 cấp (F0.0 $\rightarrow$ F1..F6 $\rightarrow$ Fx.y) và Từ điển 22 chức năng nghiệp vụ.
+2. **DFD Lv0 (Context Diagram):** Sơ đồ luồng dữ liệu mức ngữ cảnh với 5 tác nhân ngoài và 10 luồng dữ liệu vào/ra.
+3. **DFD Lv1 (Detailed Data Flow):** Sơ đồ luồng dữ liệu mức 1 cân bằng 100% với Lv0, gồm 6 tiến trình và 6 kho dữ liệu vật lý (`users`, `products`, `orders`, `order_items`, `payments`, `vouchers`).
+4. **Use Case Diagram & Academic Spec:** Sơ đồ Use Case 4 tác nhân và bảng đặc tả kịch bản chuẩn RUP cho UC-01 (Đặt đơn & Voucher), UC-02 (Thanh toán Idempotent), UC-03 (Điều phối KDS Barista).
+5. **ERD & Data Dictionary:** Sơ đồ quan hệ thực thể chuẩn hóa khớp 100% `schema.prisma` kèm từ điển dữ liệu chi tiết từng cột và kiểu Enum.
+6. **Sequence Diagrams:** Sơ đồ tuần tự cho 2 luồng cốt lõi: Đặt hàng trừ kho Optimistic Locking (`POST /api/orders`) và Thanh toán Idempotent Replay, Race Defense `P2002` (`POST /api/payments`).
+7. **Order State Machine:** Sơ đồ máy trạng thái và ma trận chuyển đổi 2 chiều khớp 100% với `StateMachineService` trong NestJS backend.

@@ -101,9 +101,9 @@ graph TD
 
     %% Phân hệ 5.0
     F5 --> F51["5.1 Hàng đợi đơn hàng chờ chế biến (FIFO)"]:::lvl2
-    F5 --> F52["5.2 Cập nhật chế biến (PAID -> PREPARING)"]:::lvl2
-    F5 --> F53["5.3 Báo hoàn tất món (PREPARING -> READY)"]:::lvl2
-    F5 --> F54["5.4 Bàn giao cho khách (READY -> COMPLETED)"]:::lvl2
+    F5 --> F52["5.2 Cập nhật chế biến (PAID sang PREPARING)"]:::lvl2
+    F5 --> F53["5.3 Báo hoàn tất món (PREPARING sang READY)"]:::lvl2
+    F5 --> F54["5.4 Bàn giao cho khách (READY sang COMPLETED)"]:::lvl2
 
     %% Phân hệ 6.0
     F6 --> F61["6.1 Cron dọn dẹp đơn quá hạn (5 phút/lần)"]:::lvl2
@@ -210,12 +210,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    %% Định nghĩa các Tác nhân ngoài (External Entities)
-    subgraph ENTITIES ["TÁC NHÂN NGOÀI (EXTERNAL ENTITIES)"]
+    %% Định nghĩa các Tác nhân ngoài (External Entities - Cân bằng 100% với DFD Lv0)
+    subgraph ENTITIES ["TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)"]
         direction LR
         CUST["Khách hàng (Customer)"]
         STAFF["Nhân viên (Staff / Barista)"]
-        CRON["Cron Scheduler"]
+        ADMIN["Quản trị viên (Store Admin)"]
+        GATEWAY["Cổng thanh toán (Mock Gateway)"]
+        CRON["Hệ thống Tự động (Cron Scheduler)"]
     end
 
     %% Định nghĩa 5 Tiến trình chính + 1 Tiến trình Tự động
@@ -239,15 +241,18 @@ flowchart TD
         D6[("D6: vouchers")]
     end
 
-    %% Tương tác Tiến trình 1.0 (Auth)
+    %% Tương tác Tiến trình 1.0 (Auth & User)
     CUST -->|"Đăng ký / Đăng nhập"| P1
     P1 -->|"Đọc / Ghi thông tin User"| D1
     P1 -->|"Trả về Token JWT & Role"| CUST
+    ADMIN -->|"Cập nhật Role / Khóa tài khoản"| P1
 
     %% Tương tác Tiến trình 2.0 (Menu / Products)
     CUST -->|"Yêu cầu xem Menu"| P2
     P2 -->|"Đọc danh sách sản phẩm & giá"| D2
     P2 -->|"Trả về danh mục sản phẩm, options"| CUST
+    ADMIN -->|"Cập nhật món & Điều chỉnh tồn kho"| P2
+    P2 -->|"Ghi cập nhật sản phẩm & tồn kho"| D2
 
     %% Tương tác Tiến trình 3.0 (Orders & Stock)
     CUST -->|"Gửi giỏ hàng, mã voucher"| P3
@@ -259,25 +264,28 @@ flowchart TD
     P3 -->|"Trả về mã đơn (#10xx) & hạn thanh toán"| CUST
 
     %% Tương tác Tiến trình 4.0 (Payments & Loyalty)
-    CUST -->|"Thanh toán (Idempotency-Key, Method)"| P4
+    CUST -->|"Yêu cầu thanh toán (Idempotency-Key, Method)"| P4
     P4 -->|"1. Kiểm tra trùng khóa thanh toán"| D5
     P4 -->|"2. Đọc trạng thái đơn & assertTransition"| D3
-    P4 -->|"3. Ghi log giao dịch Payment"| D5
-    P4 -->|"4. Chuyển trạng thái PAID hoặc FAILED"| D3
-    P4 -->|"5. Tăng usedCount voucher (nếu có)"| D6
-    P4 -->|"6. Cộng điểm Loyalty (1đ/10k)"| D1
+    P4 -->|"3. Gửi lệnh thanh toán"| GATEWAY
+    GATEWAY -->|"4. Phản hồi kết quả (SUCCESS / FAILED)"| P4
+    P4 -->|"5. Ghi log giao dịch Payment"| D5
+    P4 -->|"6. Chuyển trạng thái PAID hoặc FAILED"| D3
+    P4 -->|"7. Tăng usedCount voucher (nếu có)"| D6
+    P4 -->|"8. Cộng điểm Loyalty (1đ/10k)"| D1
     P4 -.->|"Nếu FAILED: Hoàn tồn kho"| D2
     P4 -->|"Phản hồi kết quả thanh toán & điểm thưởng"| CUST
 
-    %% Tương tác Tiến trình 5.0 (Barista KDS)
+    %% Tương tác Tiến trình 5.0 (Barista KDS & Staff)
     STAFF -->|"Truy vấn danh sách đơn chờ pha chế"| P5
     P5 -->|"Đọc các đơn (PAID, PREPARING, READY)"| D3
     P5 -->|"Đọc chi tiết món, size, topping"| D4
     P5 -->|"Trả về danh sách đơn KDS FIFO"| STAFF
     STAFF -->|"Cập nhật trạng thái (PREPARING, READY, COMPLETED)"| P5
     P5 -->|"Cập nhật trạng thái đơn hàng"| D3
-    STAFF -->|"Hủy đơn sự cố tại quầy (PAID -> CANCELLED)"| P5
+    STAFF -->|"Hủy đơn sự cố tại quầy (PAID sang CANCELLED)"| P5
     P5 -.->|"Hoàn trả tồn kho khi hủy đơn"| D2
+    ADMIN -->|"Giám sát hàng đợi & Can thiệp đơn KDS"| P5
 
     %% Tương tác Tiến trình 6.0 (Cron Cleanup)
     CRON -->|"Kích hoạt định kỳ (5 phút/lần)"| P6
@@ -288,7 +296,7 @@ flowchart TD
     classDef entityBox fill:#fdfefe,stroke:#2c3e50,stroke-width:2px;
     classDef processBubble fill:#ebf5fb,stroke:#2980b9,stroke-width:2px;
     classDef storeBox fill:#fef9e7,stroke:#f39c12,stroke-width:2px;
-    class CUST,STAFF,CRON entityBox;
+    class CUST,STAFF,ADMIN,GATEWAY,CRON entityBox;
     class P1,P2,P3,P4,P5,P6 processBubble;
     class D1,D2,D3,D4,D5,D6 storeBox;
 ```
@@ -325,6 +333,11 @@ flowchart TD
 | **F_P5_UPD** | Tiến trình P5.0 | Kho D3 (`orders`) | `UPDATE orders SET status = :nextStatus WHERE id = :orderId` | Nhân viên Barista chuyển trạng thái qua từng nấc chế biến hoặc hủy đơn tại quầy. |
 | **F_P6_D3** | Tiến trình P6.0 | Kho D3 (`orders`) | `SELECT * FROM orders WHERE status = 'PENDING' AND expiresAt < now()` | Quét tìm các đơn hàng bị bỏ rơi quá 15 phút để kích hoạt hủy tự động. |
 | **F_P6_D2** | Tiến trình P6.0 | Kho D2 (`products`) | `UPDATE products SET stock = stock + item.qty, version = version + 1 WHERE id = item.productId` | Tự động hoàn trả số lượng nguyên liệu/ly vào kho sau khi đơn bị hủy. |
+| **F_ADMIN_P1**| Quản trị viên | Tiến trình P1.0 | `{ userId, role: 'CUSTOMER' \| 'STAFF' \| 'ADMIN' }` | Quản trị viên cấu hình phân quyền hoặc khóa/mở tài khoản người dùng. |
+| **F_ADMIN_P2**| Quản trị viên | Tiến trình P2.0 | `{ id, name, price, description, imageUrl, stock }` | Quản trị viên cập nhật thông tin sản phẩm và điều chỉnh số lượng tồn kho thực tế. |
+| **F_P4_GW** | Tiến trình P4.0 | Cổng thanh toán | `{ orderId, amount, paymentMethod, idempotencyKey }` | Chuyển tiếp yêu cầu thanh toán không tiền mặt sang cổng đối tác (Mock Gateway). |
+| **F_GW_P4** | Cổng thanh toán | Tiến trình P4.0 | `{ transactionStatus: 'SUCCESS' \| 'FAILED', gatewayRefId }` | Cổng đối tác trả về kết quả xác thực giao dịch để hệ thống hoàn tất thanh toán. |
+| **F_ADMIN_P5**| Quản trị viên | Tiến trình P5.0 | `{ orderId, action: 'CANCEL_FORCE', reason }` | Quản trị viên giám sát hàng đợi KDS và can thiệp xử lý hủy đơn khẩn cấp khi gặp sự cố. |
 
 ---
 
@@ -400,16 +413,17 @@ flowchart LR
     ACT_STAFF --> UC18
 
     ACT_ADMIN --> UC19
+    ACT_ADMIN --> UC03
 
     ACT_SYSTEM --> UC20
     ACT_SYSTEM --> UC21
 
-    %% Quan hệ Include & Extend
+    %% Quan hệ Include & Extend (Chuẩn UML 2.5: Mũi tên extend đi từ Extension Use Case tới Base Use Case)
     UC07 -.->|"«include»"| UC08
-    UC07 -.->|"«extend»"| UC06
+    UC06 -.->|"«extend»"| UC07
     UC10 -.->|"«include»"| UC11
     UC10 -.->|"«include»"| UC13
-    UC10 -.->|"«extend»"| UC12
+    UC12 -.->|"«extend»"| UC10
     UC18 -.->|"«include»"| UC12
     UC20 -.->|"«include»"| UC12
 
@@ -485,7 +499,7 @@ erDiagram
     Order ||--|{ OrderItem : "contains"
     Product ||--o{ OrderItem : "referenced_in"
     Order ||--o{ Payment : "has"
-    Voucher ||--o{ Order : "applies_to"
+    Voucher ||..o{ Order : "applies_to"
 
     User {
         string id PK "UUID Khóa chính"
@@ -509,15 +523,15 @@ erDiagram
 
     Order {
         string id PK "UUID Khóa chính"
-        string code UK "Mã định danh đơn (ví dụ: #1042)"
+        string code UK "Mã định danh đơn ví dụ 1042"
         string userId FK "Liên kết khóa ngoại tới users.id"
         enum_OrderStatus status "Trạng thái đơn hàng hiện tại"
         int subtotal "Tổng tiền hàng trước giảm giá"
         int discountAmount "Số tiền được giảm giá qua Voucher"
         int total "Tổng tiền thanh toán cuối cùng"
-        string voucherCode "Mã voucher áp dụng (nếu có)"
+        string voucherCode "Mã voucher áp dụng nếu có"
         int version "Phiên bản kiểm soát xung đột"
-        datetime expiresAt "Hạn thanh toán 15 phút (ADR-007)"
+        datetime expiresAt "Hạn thanh toán 15 phút ADR-007"
         datetime createdAt "Thời điểm khởi tạo đơn hàng"
         datetime updatedAt "Thời điểm cập nhật trạng thái"
     }
@@ -697,7 +711,9 @@ sequenceDiagram
         OrdersSvc->>VouchersSvc: validateVoucher(voucherCode, subtotal)
         alt Voucher không hợp lệ hoặc không đủ điều kiện minOrder
             VouchersSvc-->>OrdersSvc: Ném BadRequestException (HTTP 400)
-            OrdersSvc-->>FE: 400 Bad Request ("Voucher không đủ điều kiện")
+            OrdersSvc-->>Controller: Ném lỗi BadRequestException (HTTP 400)
+            Controller-->>FE: 400 Bad Request ("Voucher không đủ điều kiện")
+            FE-->>Customer: Hiển thị lỗi voucher không hợp lệ
         else Voucher hợp lệ
             VouchersSvc-->>OrdersSvc: Trả về discountAmount hợp lệ
         end
@@ -751,8 +767,8 @@ sequenceDiagram
     participant DB as "PostgreSQL (Prisma Engine)"
 
     Customer->>FE: Chọn phương thức (Ví/Thẻ) -> Bấm "Xác nhận thanh toán"
-    FE->>FE: Sinh khóa ngẫu nhiên: key = crypto.randomUUID()<br>Disable nút bấm 3 giây chống spam click
-    FE->>Controller: POST /api/payments<br>Headers: [Idempotency-Key: "uuid-xxxx"]<br>Body: { orderId, method, forceFail: false }
+    FE->>FE: Sinh khóa ngẫu nhiên: key = crypto.randomUUID()<br/>Disable nút bấm 3 giây chống double-click
+    FE->>Controller: POST /api/payments<br/>Headers: [Idempotency-Key: "uuid-xxxx"]<br/>Body: { orderId, method, forceFail }
     Controller->>PaymentsSvc: processPayment(userId, "uuid-xxxx", dto)
 
     Note over PaymentsSvc,DB: Bước 1: Tra cứu Idempotency-Key phòng ngừa trùng lặp
@@ -762,64 +778,68 @@ sequenceDiagram
     alt existingPayment != null (Khóa đã tồn tại trong hệ thống)
         alt existingPayment.orderId == dto.orderId (Trùng cùng một đơn hàng)
             Note over PaymentsSvc,Customer: Cơ chế IDEMPOTENT REPLAY: Trả kết quả cũ, KHÔNG trừ tiền lần 2
-            PaymentsSvc-->>Controller: Trả về { idempotentReplay: true, status: 'PAID', message: '...' }
+            PaymentsSvc-->>Controller: Trả về { idempotentReplay: true, status: 'PAID'/'FAILED', message: '...' }
             Controller-->>FE: HTTP 200 OK (Kết quả Idempotent cũ)
-            FE-->>Customer: Hiển thị màn hình thành công đã lưu
-        else existingPayment.orderId != dto.orderId (Khóa bị tái sử dụng cho đơn khác)
+            FE-->>Customer: Hiển thị màn hình kết quả giao dịch đã lưu
+        else existingPayment.orderId != dto.orderId (Khóa bị dùng cho đơn khác)
             PaymentsSvc-->>Controller: Ném UnprocessableEntityException (HTTP 422)
             Controller-->>FE: 422 Unprocessable Entity ("Khóa đã dùng cho đơn khác")
+            FE-->>Customer: Báo lỗi xung đột Idempotency-Key
+        end
+    else existingPayment == null (Khóa mới)
+        Note over PaymentsSvc,StateMachine: Bước 2: Kiểm tra Đơn hàng & Xác thực State Machine
+        PaymentsSvc->>DB: prisma.order.findUnique({ where: { id: dto.orderId } })
+        DB-->>PaymentsSvc: order (userId, status, total, items, voucherCode)
+
+        alt order.userId != userId (Không phải chủ sở hữu)
+            PaymentsSvc-->>Controller: Ném ForbiddenException (HTTP 403)
+            Controller-->>FE: 403 Forbidden ("Bạn không có quyền thanh toán đơn này")
+            FE-->>Customer: Báo lỗi quyền truy cập
+        else order.userId == userId
+            PaymentsSvc->>StateMachine: assertTransition(order.status, targetStatus)
+            alt Trạng thái hiện tại không hợp lệ
+                StateMachine-->>PaymentsSvc: Ném BadRequestException (HTTP 400)
+                PaymentsSvc-->>Controller: 400 Bad Request
+                Controller-->>FE: 400 Bad Request
+                FE-->>Customer: Báo lỗi trạng thái đơn không hợp lệ
+            else Trạng thái hợp lệ
+                Note over PaymentsSvc,DB: Bước 3: Mở Transaction Thanh toán có bắt lỗi P2002
+                critical Transaction xử lý thanh toán
+                    PaymentsSvc->>DB: prisma.$transaction(async (tx) => { ... })
+                    alt dto.forceFail == true (Giả lập lỗi thanh toán)
+                        PaymentsSvc->>DB: tx.payment.create({ status: 'FAILED', idempotencyKey })
+                        PaymentsSvc->>DB: tx.order.update({ status: 'PAYMENT_FAILED' })
+                        loop Hoàn trả kho từng sản phẩm
+                            PaymentsSvc->>DB: tx.product.update({ stock: { increment }, version: { increment } })
+                        end
+                        PaymentsSvc-->>Controller: HTTP 200 { status: 'FAILED', message: 'Thanh toán thất bại (Giả lập lỗi)' }
+                        Controller-->>FE: HTTP 200 OK (Trạng thái FAILED, kho đã hoàn)
+                        FE-->>Customer: Hiển thị thông báo thất bại, nút "Thử lại" hoặc "Hủy đơn"
+                    else Thanh toán thành công (Happy Path)
+                        PaymentsSvc->>DB: tx.payment.create({ status: 'SUCCESS', idempotencyKey, amount })
+                        PaymentsSvc->>DB: tx.order.update({ status: 'PAID' })
+                        opt Đơn có áp dụng Voucher
+                            PaymentsSvc->>DB: tx.voucher.update({ usedCount: { increment: 1 } })
+                        end
+                        opt order.total >= 10000
+                            PaymentsSvc->>DB: tx.user.update({ loyaltyPoints: { increment: points } })
+                        end
+                        DB-->>PaymentsSvc: Commit Transaction thành công!
+                        PaymentsSvc-->>Controller: HTTP 200 { status: 'PAID', loyaltyPointsEarned }
+                        Controller-->>FE: HTTP 200 OK (Thanh toán hoàn tất)
+                        FE-->>Customer: Hiển thị trạng thái PAID, mã nhận món & điểm thưởng
+                    end
+                option Bắt lỗi Race Condition P2002 (Prisma Unique Constraint Violation)
+                    DB-->>PaymentsSvc: PrismaKnownRequestError (code: 'P2002')
+                    PaymentsSvc->>DB: prisma.payment.findUnique({ where: { idempotencyKey } })
+                    DB-->>PaymentsSvc: racePayment record
+                    PaymentsSvc-->>Controller: HTTP 200 { idempotentReplay: true, message: 'Bắt qua cơ chế P2002 Race-Defense' }
+                    Controller-->>FE: HTTP 200 OK (Kết quả Idempotent an toàn)
+                    FE-->>Customer: Hiển thị kết quả thanh toán từ luồng song song
+                end
+            end
         end
     end
-
-    Note over PaymentsSvc,StateMachine: Bước 2: Kiểm tra Đơn hàng & Xác thực State Machine
-    PaymentsSvc->>DB: prisma.order.findUnique({ where: { id: dto.orderId } })
-    DB-->>PaymentsSvc: order (userId, status, total, items, voucherCode)
-
-    alt order.userId != userId (Không phải chủ sở hữu)
-        PaymentsSvc-->>Controller: Ném ForbiddenException (HTTP 403)
-    end
-
-    PaymentsSvc->>StateMachine: assertTransition(order.status, OrderStatus.PAID)
-    alt Trạng thái hiện tại không phải PENDING hoặc PAYMENT_FAILED
-        StateMachine-->>PaymentsSvc: Ném BadRequestException (HTTP 400: Không thể chuyển trạng thái)
-        PaymentsSvc-->>Controller: 400 Bad Request
-    end
-
-    Note over PaymentsSvc,DB: Bước 3: Thực thi Transaction Thanh toán có phòng thủ P2002
-    PaymentsSvc->>DB: prisma.$transaction(async (tx) => { ... })
-
-    alt dto.forceFail == true (Kịch bản giả lập lỗi thanh toán)
-        PaymentsSvc->>DB: tx.payment.create({ status: 'FAILED', idempotencyKey: "uuid-xxxx" })
-        PaymentsSvc->>DB: tx.order.update({ status: 'PAYMENT_FAILED' })
-        loop Hoàn trả tồn kho nguyên vẹn
-            PaymentsSvc->>DB: tx.product.update({ where: { id: item.productId }, data: { stock: { increment: item.qty }, version: { increment: 1 } } })
-        end
-        PaymentsSvc-->>Controller: HTTP 200 { status: 'FAILED', message: 'Thanh toán lỗi (Thẻ không đủ số dư)' }
-    else Thanh toán thành công (Happy Path)
-        PaymentsSvc->>DB: tx.payment.create({ status: 'SUCCESS', idempotencyKey: "uuid-xxxx", amount: order.total })
-        PaymentsSvc->>DB: tx.order.update({ where: { id: order.id }, data: { status: 'PAID' } })
-        opt Đơn có áp dụng Voucher
-            PaymentsSvc->>DB: tx.voucher.update({ where: { code: order.voucherCode }, data: { usedCount: { increment: 1 } } })
-        end
-        Note over PaymentsSvc,DB: Cộng điểm Loyalty: 1 điểm / 10.000đ
-        PaymentsSvc->>PaymentsSvc: points = Math.floor(order.total / 10000)
-        opt points > 0
-            PaymentsSvc->>DB: tx.user.update({ where: { id: userId }, data: { loyaltyPoints: { increment: points } } })
-        end
-        PaymentsSvc->>DB: COMMIT TRANSACTION!
-        PaymentsSvc-->>Controller: HTTP 200 { status: 'PAID', pointsEarned: points }
-    end
-
-    Note over PaymentsSvc,DB: Bước 4: Xử lý ngoại lệ Race Condition P2002 của Prisma
-    opt Nếu 2 request song song lọt qua bước 1 đồng thời -> Database ném lỗi P2002
-        DB-->>PaymentsSvc: PrismaKnownRequestError (code: 'P2002')
-        PaymentsSvc->>DB: prisma.payment.findUnique({ where: { idempotencyKey: "uuid-xxxx" } })
-        DB-->>PaymentsSvc: racePayment record
-        PaymentsSvc-->>Controller: HTTP 200 { idempotentReplay: true, message: 'Bắt qua cơ chế P2002 Race-Defense' }
-    end
-
-    Controller-->>FE: HTTP 200 OK (Thanh toán hoàn tất)
-    FE-->>Customer: Hiển thị trạng thái PAID, mã nhận món & điểm Loyalty được cộng
 ```
 
 ---
@@ -846,9 +866,9 @@ stateDiagram-v2
 
     %% Luồng chuyển tiếp chuẩn (Happy Path)
     PENDING --> PAID : 2. Thanh toán thành công (POST /api/payments)
-    PAID --> PREPARING : 3. Barista nhận làm món (PATCH /orders/:id/status)
-    PREPARING --> READY : 4. Pha chế hoàn tất (PATCH /orders/:id/status)
-    READY --> COMPLETED : 5. Giao món cho khách (PATCH /orders/:id/status)
+    PAID --> PREPARING : 3. Barista nhận làm món (PATCH /orders/{id}/status)
+    PREPARING --> READY : 4. Pha chế hoàn tất (PATCH /orders/{id}/status)
+    READY --> COMPLETED : 5. Giao món cho khách (PATCH /orders/{id}/status)
     COMPLETED --> [*] : Kết thúc chu trình thành công
 
     %% Nhánh xử lý lỗi thanh toán
@@ -918,3 +938,4 @@ Tài liệu này đóng vai trò là bản đặc tả kỹ thuật và kiến t
    - Kiểm tra Idempotency Replay và Race Defense P2002 khi có 2 request song song (Task 10.2).
    - Kiểm tra đặt hàng đồng thời với Optimistic Locking không vượt quá tồn kho (Task 10.3).
    - Kiểm tra dọn dẹp đơn quá hạn 15 phút và hoàn kho tự động của Cron Cleanup Service (ADR-007).
+4. **Liên kết điều hướng:** Tham chiếu hướng dẫn cài đặt và kịch bản nghiệm thu tại [README.md](../README.md).
