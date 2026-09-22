@@ -1,0 +1,91 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#fef3c7',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#e0f2fe',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart TB
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef entityBox fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef processBubble fill:#fef3c7,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:600;
+    classDef storeBox fill:#f3e8ff,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+
+    %% TẦNG 1: TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)
+    subgraph TIER_ENTITIES ["TẦNG 1: TÁC NHÂN NGOÀI (EXTERNAL ENTITIES)"]
+        direction LR
+        CUST["👤 Khách hàng<br>(Customer)"]:::entityBox
+        STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / KDS)"]:::entityBox
+        ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::entityBox
+        GATEWAY["💳 Cổng thanh toán<br>(Mock Gateway)"]:::entityBox
+        CRON["⏱️ Hệ thống Tự động<br>(Cron Scheduler)"]:::entityBox
+    end
+
+    %% TẦNG 2: CÁC TIẾN TRÌNH XỬ LÝ CỐT LÕI (CORE PROCESSES)
+    subgraph TIER_PROCESSES ["TẦNG 2: TIẾN TRÌNH XỬ LÝ NGHIỆP VỤ (PROCESSES)"]
+        P1(("1.0 Xác thực &<br>Quản lý Tài khoản")):::processBubble
+        P2(("2.0 Quản lý Thực đơn<br>& Tra cứu Tồn kho")):::processBubble
+        P3(("3.0 Xử lý Đặt hàng<br>& Trừ kho Optimistic")):::processBubble
+        P4(("4.0 Xử lý Thanh toán<br>& Tích điểm Idempotent")):::processBubble
+        P5(("5.0 Điều phối Pha chế<br>& Màn hình KDS")):::processBubble
+        P6(("6.0 Tự động Dọn dẹp<br>& Hoàn kho Đơn quá hạn")):::processBubble
+    end
+
+    %% TẦNG 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)
+    subgraph TIER_STORES ["TẦNG 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)"]
+        direction LR
+        D1[("[(D1)]<br>users")]:::storeBox
+        D2[("[(D2)]<br>products")]:::storeBox
+        D3[("[(D3)]<br>orders")]:::storeBox
+        D4[("[(D4)]<br>order_items")]:::storeBox
+        D5[("[(D5)]<br>payments")]:::storeBox
+        D6[("[(D6)]<br>vouchers")]:::storeBox
+    end
+
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 1.0 (Auth & Account)
+    CUST <-->|"1. Đăng ký / Đăng nhập / Token"| P1
+    ADMIN -->|"Cấu hình RBAC / Khóa tài khoản"| P1
+    P1 <-->|"Ghi nhận / Đọc thông tin User, PasswordHash"| D1
+
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 2.0 (Menu & Catalog)
+    CUST <-->|"2. Tra cứu danh mục Menu & Đồ uống"| P2
+    ADMIN <-->|"Cập nhật giá, thêm món, điều chỉnh kho"| P2
+    P2 <-->|"Đọc danh mục / Cập nhật sản phẩm & kho"| D2
+
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 3.0 (Ordering & Stock Allocation)
+    CUST -->|"3. Gửi giỏ hàng & Mã Voucher"| P3
+    P3 -->|"Phản hồi mã đơn #10xx & Hạn 15p"| CUST
+    P3 -->|"Xác thực voucher & Đọc minOrder"| D6
+    P3 <-->|"Trừ kho Optimistic (stock -= qty, ver += 1)"| D2
+    P3 -->|"Tạo đơn PENDING (expiresAt = now + 15m)"| D3
+    P3 -->|"Lưu snapshot danh sách món, size, topping"| D4
+
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 4.0 (Payments & Idempotency)
+    CUST -->|"4. Yêu cầu thanh toán (Idempotency-Key)"| P4
+    P4 -->|"Kết quả thanh toán & Điểm Loyalty"| CUST
+    P4 <-->|"Gửi lệnh thanh toán / Nhận kết quả GD"| GATEWAY
+    P4 <-->|"Kiểm tra trùng khóa / Ghi nhận Payment"| D5
+    P4 -->|"Cập nhật đơn PAID (hoặc PAYMENT_FAILED)"| D3
+    P4 -->|"Tăng usedCount voucher thành công"| D6
+    P4 -->|"Cộng điểm Loyalty (1đ / 10k)"| D1
+    P4 -.->|"Nếu thanh toán lỗi: Tự động hoàn kho"| D2
+
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 5.0 (Barista KDS & Fulfillment)
+    STAFF <-->|"5. Nhận hàng đợi KDS (FIFO) / Cập nhật tiến độ"| P5
+    ADMIN -->|"Giám sát hàng đợi & Can thiệp đơn KDS"| P5
+    P5 <-->|"Đọc đơn PAID/PREPARING/READY & Cập nhật trạng thái"| D3
+    P5 -->|"Đọc chi tiết món, size, topping"| D4
+    P5 -.->|"Hủy đơn sự cố tại quầy: Hoàn kho sản phẩm"| D2
+
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 6.0 (Cron Cleanup & Timeout)
+    CRON -->|"6. Kích hoạt dọn dẹp định kỳ (5 phút/lần)"| P6
+    P6 <-->|"Quét đơn PENDING quá hạn & Chuyển CANCELLED"| D3
+    P6 -->|"Tự động hoàn trả tồn kho (stock += qty)"| D2

@@ -1,0 +1,50 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart TD
+    %% Định nghĩa các lớp kiểu dáng màu sắc High-Contrast chữ đen
+    classDef entity fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef process fill:#fef3c7,stroke:#1e293b,stroke-width:3px,color:#000000,font-weight:700;
+    classDef systemBox fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#000000;
+
+    %% Tác nhân ngoài (External Entities)
+    ACT_CUST["👤 Khách hàng (Customer)"]:::entity
+    ACT_STAFF["🧑‍🍳 Nhân viên Barista (Staff)"]:::entity
+    ACT_ADMIN["👨‍💼 Quản trị viên (Store Admin)"]:::entity
+    ACT_GATEWAY["💳 Cổng thanh toán (Mock Gateway)"]:::entity
+    ACT_CRON["⏱️ Hệ thống Tự động (Cron Daemon)"]:::entity
+
+    %% Tiến trình mức ngữ cảnh trung tâm
+    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT VÀ THANH TOÁN<br>CÀ PHÊ BREWLITE")):::process
+
+    %% Luồng dữ liệu Khách hàng
+    ACT_CUST -->|"1. Gửi thông tin đăng ký, đăng nhập,<br>giỏ hàng, voucher, yêu cầu thanh toán, hủy đơn"| SYS_MAIN
+    SYS_MAIN -->|"2. Phản hồi Token JWT, danh mục menu,<br>mã đơn #10xx, trạng thái đơn, điểm Loyalty"| ACT_CUST
+
+    %% Luồng dữ liệu Nhân viên Barista
+    SYS_MAIN -->|"3. Danh sách đơn chờ pha chế (KDS FIFO),<br>chi tiết món, Size S/M/L, Toppings"| ACT_STAFF
+    ACT_STAFF -->|"4. Cập nhật trạng thái (PREPARING, READY, COMPLETED),<br>lệnh hủy đơn sự cố tại quầy (kèm hoàn kho)"| SYS_MAIN
+
+    %% Luồng dữ liệu Quản trị viên
+    ACT_ADMIN -->|"5. Cấu hình sản phẩm, điều chỉnh kho tồn,<br>phân quyền tài khoản RBAC, giám sát đơn"| SYS_MAIN
+    SYS_MAIN -->|"6. Báo cáo trạng thái kho, nhật ký giao dịch,<br>thông tin kiểm toán hệ thống (Audit Logs)"| ACT_ADMIN
+
+    %% Luồng dữ liệu Cổng thanh toán
+    SYS_MAIN -->|"7. Dữ liệu giao dịch (Mã đơn, số tiền,<br>phương thức Ví/Thẻ, Idempotency-Key)"| ACT_GATEWAY
+    ACT_GATEWAY -->|"8. Kết quả xác thực giao dịch<br>(SUCCESS / FAILED)"| SYS_MAIN
+
+    %% Luồng dữ liệu Cron Daemon
+    ACT_CRON -->|"9. Tín hiệu trigger định kỳ (mỗi 5 phút)"| SYS_MAIN
+    SYS_MAIN -->|"10. Kết quả thu hồi kho & hủy đơn quá hạn 15p"| ACT_CRON

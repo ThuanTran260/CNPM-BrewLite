@@ -1,0 +1,50 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef baseUC fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef actionUC fill:#fef3c7,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef subUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+    classDef cancelUC fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+
+    %% TÁC NHÂN
+    STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / Barista)"]:::actorNode
+    ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+
+    ADMIN -.->|"«generalizes»<br>Kế thừa quyền quầy"| STAFF
+
+    %% PHÂN HỆ VẬN HÀNH KDS
+    subgraph UC_KDS ["PHÂN HỆ QUẦY PHA CHẾ & ĐIỀU PHỐI KDS"]
+        direction TB
+
+        UC_QUEUE(["Xem hàng đợi KDS<br>(Thứ tự FIFO thời gian thực)"]):::baseUC
+        UC_PREP(["Tiếp nhận pha chế<br>(Chuyển sang PREPARING)"]):::actionUC
+        UC_READY(["Báo hoàn tất làm món<br>(Chuyển sang READY)"]):::actionUC
+        UC_COMPLETE(["Bàn giao đồ uống cho khách<br>(Chuyển sang COMPLETED)"]):::subUC
+        UC_CANCEL_STAFF(["Hủy đơn sự cố tại quầy<br>(PAID sang CANCELLED)"]):::cancelUC
+        UC_RESTOCK(["Tự động hoàn kho sản phẩm<br>(Atomic Rollback)"]):::subUC
+    end
+
+    %% TƯƠNG TÁC TÁC NHÂN -> USE CASE
+    STAFF --> UC_QUEUE
+    STAFF --> UC_PREP
+    STAFF --> UC_READY
+    STAFF --> UC_COMPLETE
+    STAFF --> UC_CANCEL_STAFF
+
+    %% QUAN HỆ INCLUDE
+    UC_CANCEL_STAFF -.->|"«include»"| UC_RESTOCK

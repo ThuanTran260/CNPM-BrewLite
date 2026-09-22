@@ -1,0 +1,54 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef adminUC fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef cronUC fill:#fef3c7,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef subUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+
+    %% TÁC NHÂN
+    ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+    CRON["⏱️ Hệ thống Tự động<br>(System Cron Daemon)"]:::actorNode
+
+    %% PHÂN HỆ QUẢN TRỊ & TỰ ĐỘNG HÓA
+    subgraph UC_ADMIN_CRON ["PHÂN HỆ QUẢN TRỊ VẬN HÀNH & TỰ ĐỘNG HÓA"]
+        direction TB
+
+        subgraph G_ADMIN ["Nghiệp vụ Quản trị Cửa hàng"]
+            UC_MENU(["Cấu hình menu, giá & tồn kho món"]):::adminUC
+            UC_RBAC(["Quản lý tài khoản & Phân quyền RBAC"]):::adminUC
+            UC_AUDIT(["Giám sát toàn diện & Can thiệp KDS"]):::adminUC
+        end
+
+        subgraph G_CRON ["Nghiệp vụ Tự động hóa & Timeout (ADR-007)"]
+            UC_CRON_JOB(["Dọn dẹp đơn quá hạn 15 phút<br>(Cron Job chạy 5 phút/lần)"]):::cronUC
+            UC_LAZY_TIMEOUT(["Cơ chế Lazy-Check Timeout<br>(Kích hoạt khi tra cứu đơn GET)"]):::cronUC
+            UC_AUTO_RESTOCK(["Tự động thu hồi & Hoàn trả tồn kho<br>(Atomic Transaction)"]):::subUC
+        end
+    end
+
+    %% TƯƠNG TÁC TÁC NHÂN -> USE CASE
+    ADMIN --> UC_MENU
+    ADMIN --> UC_RBAC
+    ADMIN --> UC_AUDIT
+
+    CRON --> UC_CRON_JOB
+    CRON --> UC_LAZY_TIMEOUT
+
+    %% QUAN HỆ INCLUDE
+    UC_CRON_JOB -.->|"«include»"| UC_AUTO_RESTOCK
+    UC_LAZY_TIMEOUT -.->|"«include»"| UC_AUTO_RESTOCK

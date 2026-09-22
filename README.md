@@ -113,11 +113,13 @@ npm run test:e2e
 
 ## 7. Tài liệu Kiến trúc & Đặc tả Thiết kế Hệ thống
 
-Toàn bộ tài liệu phân tích và thiết kế hệ thống chuẩn học thuật (Academic-Grade Architecture Spec) được biên soạn tại [docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md](docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md), bao gồm:
+Toàn bộ tài liệu phân tích và thiết kế hệ thống chuẩn học thuật (Academic-Grade Architecture Spec) được biên soạn tại [docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md](docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md) và hướng dẫn sử dụng Draw.io tại [docs/DRAWIO_GUIDE.md](docs/DRAWIO_GUIDE.md), bao gồm:
 1. **BFD (Business Function Decomposition):** Sơ đồ phân rã chức năng 3 cấp (F0.0 $\rightarrow$ F1..F6 $\rightarrow$ Fx.y) và Từ điển 22 chức năng nghiệp vụ.
 2. **DFD Lv0 (Context Diagram):** Sơ đồ luồng dữ liệu mức ngữ cảnh với 5 tác nhân ngoài và 10 luồng dữ liệu vào/ra.
-3. **DFD Lv1 (Detailed Data Flow):** Sơ đồ luồng dữ liệu mức 1 cân bằng 100% với Lv0, gồm 6 tiến trình và 6 kho dữ liệu vật lý (`users`, `products`, `orders`, `order_items`, `payments`, `vouchers`).
-4. **Use Case Diagram & Academic Spec:** Sơ đồ Use Case 4 tác nhân và bảng đặc tả kịch bản chuẩn RUP cho UC-01 (Đặt đơn & Voucher), UC-02 (Thanh toán Idempotent), UC-03 (Điều phối KDS Barista).
+3. **DFD Lv1 (Detailed Data Flow):** Sơ đồ luồng dữ liệu mức 1 phân tầng (Anti-Spaghetti), gồm 6 tiến trình và 6 kho dữ liệu vật lý (`users`, `products`, `orders`, `order_items`, `payments`, `vouchers`).
+4. **Use Case Diagrams (Phân rã 2 cấp):** Sơ đồ tổng quan cấp cao (4 Actors - 5 Packages) cùng 3 sơ đồ phân rã chi tiết cho Khách hàng, Barista KDS, Quản trị viên & Cron; kèm bảng đặc tả kịch bản chuẩn RUP cho UC-01, UC-02, UC-03.
 5. **ERD & Data Dictionary:** Sơ đồ quan hệ thực thể chuẩn hóa khớp 100% `schema.prisma` kèm từ điển dữ liệu chi tiết từng cột và kiểu Enum.
 6. **Sequence Diagrams:** Sơ đồ tuần tự cho 2 luồng cốt lõi: Đặt hàng trừ kho Optimistic Locking (`POST /api/orders`) và Thanh toán Idempotent Replay, Race Defense `P2002` (`POST /api/payments`).
 7. **Order State Machine:** Sơ đồ máy trạng thái và ma trận chuyển đổi 2 chiều khớp 100% với `StateMachineService` trong NestJS backend.
+8. **Kho biểu đồ Vector & Draw.io:** Toàn bộ 11 biểu đồ được xuất sẵn mã nguồn độc lập tại [docs/diagrams/](docs/diagrams/) và bộ ảnh vector SVG siêu nét tại [docs/diagrams/svg/](docs/diagrams/svg/) hỗ trợ phóng to 1.000% không vỡ hạt.
+

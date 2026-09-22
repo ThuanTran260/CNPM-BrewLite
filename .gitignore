@@ -37,3 +37,7 @@ coverage/
 # TypeScript build info
 *.tsbuildinfo
 apps/**/package-lock.json
+
+# Script vendors
+scripts/vendor/
+

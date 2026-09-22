@@ -1,0 +1,52 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+stateDiagram-v2
+    direction LR
+
+    [*] --> PENDING : 1. Khởi tạo đơn (POST /api/orders)
+
+    state "PENDING<br>(Đang chờ thanh toán - Hạn 15p)" as PENDING
+    state "PAYMENT_FAILED<br>(Thanh toán thất bại / Hoàn kho)" as PAYMENT_FAILED
+    state "PAID<br>(Đã thanh toán / Chờ quầy)" as PAID
+    state "PREPARING<br>(Barista đang pha chế)" as PREPARING
+    state "READY<br>(Đã xong món / Chờ lấy)" as READY
+    state "COMPLETED<br>(Đã nhận món - Thành công)" as COMPLETED
+    state "CANCELLED<br>(Đã hủy đơn / Thu hồi kho)" as CANCELLED
+
+    %% Luồng chuyển tiếp chuẩn (Happy Path)
+    PENDING --> PAID : 2. Thanh toán thành công (POST /api/payments)
+    PAID --> PREPARING : 3. Barista nhận làm món (PATCH /orders/{id}/status)
+    PREPARING --> READY : 4. Pha chế hoàn tất (PATCH /orders/{id}/status)
+    READY --> COMPLETED : 5. Giao món cho khách (PATCH /orders/{id}/status)
+    COMPLETED --> [*] : Kết thúc chu trình thành công
+
+    %% Nhánh xử lý lỗi thanh toán
+    PENDING --> PAYMENT_FAILED : Giao dịch lỗi / Không đủ số dư
+    PAYMENT_FAILED --> PENDING : Khách bấm Thử lại thanh toán
+
+    %% Nhánh hủy đơn và hoàn trả kho
+    PENDING --> CANCELLED : Khách chủ động hủy / Hết hạn 15p (Cron/Lazy)
+    PAYMENT_FAILED --> CANCELLED : Khách hoặc Nhân viên hủy đơn lỗi
+    PAID --> CANCELLED : Nhân viên quầy hủy sự cố (chưa sang PREPARING)
+    CANCELLED --> [*] : Kết thúc chu trình hủy đơn
+
+    classDef successState fill:#dcfce7,stroke:#1e293b,color:#000000,stroke-width:2px;
+    classDef failedState fill:#fee2e2,stroke:#1e293b,color:#000000,stroke-width:2px;
+    classDef cancelState fill:#f1f5f9,stroke:#1e293b,color:#000000,stroke-width:2px;
+    classDef activeState fill:#e0f2fe,stroke:#1e293b,color:#000000,stroke-width:2px;
+
+    class PENDING,PAID,PREPARING,READY activeState;
+    class COMPLETED successState;
+    class PAYMENT_FAILED failedState;
+    class CANCELLED cancelState;

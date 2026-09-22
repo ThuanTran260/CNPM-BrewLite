@@ -1,0 +1,111 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'actorBkg': '#e0f2fe',
+    'actorBorder': '#1e293b',
+    'actorTextColor': '#000000',
+    'actorLineColor': '#1e293b',
+    'signalColor': '#1e293b',
+    'signalTextColor': '#000000',
+    'labelBoxBkgColor': '#fef3c7',
+    'labelBoxBorderColor': '#1e293b',
+    'labelTextColor': '#000000',
+    'loopTextColor': '#000000',
+    'noteBorderColor': '#1e293b',
+    'noteBkgColor': '#fef3c7',
+    'noteTextColor': '#000000',
+    'activationBorderColor': '#1e293b',
+    'activationBkgColor': '#cbd5e1',
+    'sequenceNumberColor': '#000000',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    actor Customer as "Khách hàng"
+    participant FE as "Next.js Frontend"
+    participant Controller as "PaymentsController"
+    participant PaymentsSvc as "PaymentsService"
+    participant StateMachine as "OrderStateMachine"
+    participant DB as "PostgreSQL (Prisma Engine)"
+
+    Customer->>FE: Chọn phương thức (Ví/Thẻ) -> Bấm "Xác nhận thanh toán"
+    FE->>FE: Sinh khóa ngẫu nhiên: key = crypto.randomUUID()<br/>Disable nút bấm 3 giây chống double-click
+    FE->>Controller: POST /api/payments<br/>Headers: [Idempotency-Key: "uuid-xxxx"]<br/>Body: { orderId, method, forceFail }
+    Controller->>PaymentsSvc: processPayment(userId, "uuid-xxxx", dto)
+
+    Note over PaymentsSvc,DB: Bước 1: Tra cứu Idempotency-Key phòng ngừa trùng lặp
+    PaymentsSvc->>DB: prisma.payment.findUnique({ where: { idempotencyKey: "uuid-xxxx" } })
+    DB-->>PaymentsSvc: existingPayment (hoặc null)
+
+    alt existingPayment != null (Khóa đã tồn tại trong hệ thống)
+        alt existingPayment.orderId == dto.orderId (Trùng cùng một đơn hàng)
+            Note over PaymentsSvc,Customer: Cơ chế IDEMPOTENT REPLAY: Trả kết quả cũ, KHÔNG trừ tiền lần 2
+            PaymentsSvc-->>Controller: Trả về { idempotentReplay: true, status: 'PAID'/'FAILED', message: '...' }
+            Controller-->>FE: HTTP 200 OK (Kết quả Idempotent cũ)
+            FE-->>Customer: Hiển thị màn hình kết quả giao dịch đã lưu
+        else existingPayment.orderId != dto.orderId (Khóa bị dùng cho đơn khác)
+            PaymentsSvc-->>Controller: Ném UnprocessableEntityException (HTTP 422)
+            Controller-->>FE: 422 Unprocessable Entity ("Khóa đã dùng cho đơn khác")
+            FE-->>Customer: Báo lỗi xung đột Idempotency-Key
+        end
+    else existingPayment == null (Khóa mới)
+        Note over PaymentsSvc,StateMachine: Bước 2: Kiểm tra Đơn hàng & Xác thực State Machine
+        PaymentsSvc->>DB: prisma.order.findUnique({ where: { id: dto.orderId } })
+        DB-->>PaymentsSvc: order (userId, status, total, items, voucherCode)
+
+        alt order.userId != userId (Không phải chủ sở hữu)
+            PaymentsSvc-->>Controller: Ném ForbiddenException (HTTP 403)
+            Controller-->>FE: 403 Forbidden ("Bạn không có quyền thanh toán đơn này")
+            FE-->>Customer: Báo lỗi quyền truy cập
+        else order.userId == userId
+            PaymentsSvc->>StateMachine: assertTransition(order.status, targetStatus)
+            alt Trạng thái hiện tại không hợp lệ
+                StateMachine-->>PaymentsSvc: Ném BadRequestException (HTTP 400)
+                PaymentsSvc-->>Controller: 400 Bad Request
+                Controller-->>FE: 400 Bad Request
+                FE-->>Customer: Báo lỗi trạng thái đơn không hợp lệ
+            else Trạng thái hợp lệ
+                Note over PaymentsSvc,DB: Bước 3: Mở Transaction Thanh toán có bắt lỗi P2002
+                critical Transaction xử lý thanh toán
+                    PaymentsSvc->>DB: prisma.$transaction(async (tx) => { ... })
+                    alt dto.forceFail == true (Giả lập lỗi thanh toán)
+                        PaymentsSvc->>DB: tx.payment.create({ status: 'FAILED', idempotencyKey })
+                        PaymentsSvc->>DB: tx.order.update({ status: 'PAYMENT_FAILED' })
+                        loop Hoàn trả kho từng sản phẩm
+                            PaymentsSvc->>DB: tx.product.update({ stock: { increment }, version: { increment } })
+                        end
+                        PaymentsSvc-->>Controller: HTTP 200 { status: 'FAILED', message: 'Thanh toán thất bại (Giả lập lỗi)' }
+                        Controller-->>FE: HTTP 200 OK (Trạng thái FAILED, kho đã hoàn)
+                        FE-->>Customer: Hiển thị thông báo thất bại, nút "Thử lại" hoặc "Hủy đơn"
+                    else Thanh toán thành công (Happy Path)
+                        PaymentsSvc->>DB: tx.payment.create({ status: 'SUCCESS', idempotencyKey, amount })
+                        PaymentsSvc->>DB: tx.order.update({ status: 'PAID' })
+                        opt Đơn có áp dụng Voucher
+                            PaymentsSvc->>DB: tx.voucher.update({ usedCount: { increment: 1 } })
+                        end
+                        opt order.total >= 10000
+                            PaymentsSvc->>DB: tx.user.update({ loyaltyPoints: { increment: points } })
+                        end
+                        DB-->>PaymentsSvc: Commit Transaction thành công!
+                        PaymentsSvc-->>Controller: HTTP 200 { status: 'PAID', loyaltyPointsEarned }
+                        Controller-->>FE: HTTP 200 OK (Thanh toán hoàn tất)
+                        FE-->>Customer: Hiển thị trạng thái PAID, mã nhận món & điểm thưởng
+                    end
+                option Bắt lỗi Race Condition P2002 (Prisma Unique Constraint Violation)
+                    DB-->>PaymentsSvc: PrismaKnownRequestError (code: 'P2002')
+                    PaymentsSvc->>DB: prisma.payment.findUnique({ where: { idempotencyKey } })
+                    DB-->>PaymentsSvc: racePayment record
+                    PaymentsSvc-->>Controller: HTTP 200 { idempotentReplay: true, message: 'Bắt qua cơ chế P2002 Race-Defense' }
+                    Controller-->>FE: HTTP 200 OK (Kết quả Idempotent an toàn)
+                    FE-->>Customer: Hiển thị kết quả thanh toán từ luồng song song
+                end
+            end
+        end
+    end

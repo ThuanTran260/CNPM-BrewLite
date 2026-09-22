@@ -1,0 +1,65 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#fef3c7',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#e0f2fe',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+graph TD
+    %% Định nghĩa các lớp màu sắc High-Contrast chữ đen
+    classDef root fill:#fef3c7,stroke:#1e293b,color:#000000,stroke-width:3px,font-weight:700;
+    classDef lvl1 fill:#e0f2fe,stroke:#1e293b,color:#000000,stroke-width:2px,font-weight:600;
+    classDef lvl2 fill:#ffffff,stroke:#1e293b,color:#000000,stroke-width:1.5px,font-weight:500;
+
+    ROOT["0.0 HỆ THỐNG ĐẶT VÀ QUẢN LÝ CÀ PHÊ BREWLITE"]:::root
+
+    %% Phân hệ chức năng cấp 1
+    ROOT --> F1["1.0 Quản lý Xác thực & Hồ sơ"]:::lvl1
+    ROOT --> F2["2.0 Quản lý Thực đơn & Tồn kho"]:::lvl1
+    ROOT --> F3["3.0 Quản lý Đặt hàng & Xử lý đơn"]:::lvl1
+    ROOT --> F4["4.0 Quản lý Thanh toán & Ưu đãi"]:::lvl1
+    ROOT --> F5["5.0 Quản trị Quầy & Điều phối Pha chế (KDS)"]:::lvl1
+    ROOT --> F6["6.0 Quản trị Vận hành & Tự động hóa"]:::lvl1
+
+    %% Phân hệ 1.0
+    F1 --> F11["1.1 Đăng ký tài khoản mới"]:::lvl2
+    F1 --> F12["1.2 Đăng nhập & Cấp phát JWT"]:::lvl2
+    F1 --> F13["1.3 Quản lý hồ sơ & Tra cứu điểm tích lũy"]:::lvl2
+    F1 --> F14["1.4 Phân quyền vai trò người dùng (RBAC)"]:::lvl2
+
+    %% Phân hệ 2.0
+    F2 --> F21["2.1 Hiển thị thực đơn (Menu Catalog)"]:::lvl2
+    F2 --> F22["2.2 Tùy biến đồ uống (Size S/M/L, Toppings)"]:::lvl2
+    F2 --> F23["2.3 Tra cứu tồn kho & Quản lý giá"]:::lvl2
+    F2 --> F24["2.4 Cập nhật kho qua Optimistic Locking"]:::lvl2
+
+    %% Phân hệ 3.0
+    F3 --> F31["3.1 Quản trị giỏ hàng (Cart Management)"]:::lvl2
+    F3 --> F32["3.2 Khởi tạo đơn hàng (PENDING) & Trừ kho"]:::lvl2
+    F3 --> F33["3.3 Theo dõi chi tiết & Lịch sử đơn hàng"]:::lvl2
+    F3 --> F34["3.4 Hủy đơn hàng & Tự động hoàn kho"]:::lvl2
+
+    %% Phân hệ 4.0
+    F4 --> F41["4.1 Kiểm tra & Áp dụng mã Voucher"]:::lvl2
+    F4 --> F42["4.2 Xử lý thanh toán đa phương thức (Ví/Thẻ)"]:::lvl2
+    F4 --> F43["4.3 Kiểm soát trùng lặp Idempotency-Key"]:::lvl2
+    F4 --> F44["4.4 Cộng điểm thưởng Loyalty (1đ / 10.000đ)"]:::lvl2
+
+    %% Phân hệ 5.0
+    F5 --> F51["5.1 Hàng đợi đơn hàng chờ chế biến (FIFO)"]:::lvl2
+    F5 --> F52["5.2 Cập nhật chế biến (PAID sang PREPARING)"]:::lvl2
+    F5 --> F53["5.3 Báo hoàn tất món (PREPARING sang READY)"]:::lvl2
+    F5 --> F54["5.4 Bàn giao cho khách (READY sang COMPLETED)"]:::lvl2
+
+    %% Phân hệ 6.0
+    F6 --> F61["6.1 Cron dọn dẹp đơn quá hạn (5 phút/lần)"]:::lvl2
+    F6 --> F62["6.2 Cơ chế Lazy-Check Timeout khi tra cứu"]:::lvl2
+    F6 --> F63["6.3 Giám sát trạng thái hệ thống (Health Check)"]:::lvl2

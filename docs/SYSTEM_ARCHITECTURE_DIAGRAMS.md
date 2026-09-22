@@ -7,6 +7,7 @@
 **Chuẩn tham chiếu:** RUP / Agile Scrum Architecture Standard, ADR-007, Prisma Schema v1.0  
 **Ngày cập nhật:** 23/09/2026  
 **Trạng thái tài liệu:** Approved & Baseline for Production  
+**Tài nguyên biểu đồ Vector & Draw.io:** Toàn bộ 11 biểu đồ đã được kết xuất sẵn dạng mã nguồn [Mermaid (.mmd)](./diagrams/) và [Vector SVG siêu nét](./diagrams/svg/) cho phép phóng to 1.000% không vỡ hạt và nhập trực tiếp vào Draw.io (`Ctrl + Shift + I`). Xem hướng dẫn chi tiết tại [DRAWIO_GUIDE.md](./DRAWIO_GUIDE.md).
 
 ---
 
@@ -24,10 +25,13 @@
    - [4.2 Bảng từ điển kho dữ liệu (Data Store Dictionary)](#42-bảng-từ-điển-kho-dữ-liệu-data-store-dictionary)
    - [4.3 Bảng từ điển luồng dữ liệu chi tiết mức 1](#43-bảng-từ-điển-luồng-dữ-liệu-chi-tiết-mức-1)
 5. [USE CASE DIAGRAM & ĐẶC TẢ KỊCH BẢN USE CASE CHUẨN ACADEMIC](#5-use-case-diagram--đặc-tả-kịch-bản-use-case-chuẩn-academic)
-   - [5.1 Sơ đồ Use Case tổng thể theo 4 tác nhân (Mermaid)](#51-sơ-đồ-use-case-tổng-thể-theo-4-tác-nhân-mermaid)
-   - [5.2 Đặc tả Use Case UC-01: Đặt đồ uống & Áp mã Voucher](#52-đặc-tả-use-case-uc-01-đặt-đồ-uống--áp-mã-voucher)
-   - [5.3 Đặc tả Use Case UC-02: Thanh toán không tiền mặt Idempotent](#53-đặc-tả-use-case-uc-02-thanh-toán-không-tiền-mặt-idempotent)
-   - [5.4 Đặc tả Use Case UC-03: Barista tiếp nhận & Cập nhật chế biến đơn tại KDS](#54-đặc-tả-use-case-uc-03-barista-tiếp-nhận--cập-nhật-chế-biến-đơn-tại-kds)
+   - [5.1 Sơ đồ Use Case tổng quan tinh gọn (Overview — 4 Actors, 5 Packages)](#51-sơ-đồ-use-case-tổng-quan-tinh-gọn-overview--4-actors-5-packages)
+   - [5.2 Sơ đồ Use Case phân rã chi tiết — Khách hàng (Customer Use Cases)](#52-sơ-đồ-use-case-phân-rã-chi-tiết--khách-hàng-customer-use-cases)
+   - [5.3 Sơ đồ Use Case phân rã chi tiết — Nhân viên Barista (Staff / KDS Use Cases)](#53-sơ-đồ-use-case-phân-rã-chi-tiết--nhân-viên-barista-staff--kds-use-cases)
+   - [5.4 Sơ đồ Use Case phân rã chi tiết — Quản trị viên & Tự động hóa (Admin & System Cron)](#54-sơ-đồ-use-case-phân-rã-chi-tiết--quản-trị-viên--tự-động-hóa-admin--system-cron)
+   - [5.5 Đặc tả Use Case UC-01: Đặt đồ uống & Áp mã Voucher](#55-đặc-tả-use-case-uc-01-đặt-đồ-uống--áp-mã-voucher)
+   - [5.6 Đặc tả Use Case UC-02: Thanh toán không tiền mặt Idempotent](#56-đặc-tả-use-case-uc-02-thanh-toán-không-tiền-mặt-idempotent)
+   - [5.7 Đặc tả Use Case UC-03: Barista tiếp nhận & Cập nhật chế biến đơn tại KDS](#57-đặc-tả-use-case-uc-03-barista-tiếp-nhận--cập-nhật-chế-biến-đơn-tại-kds)
 6. [ERD (ENTITY-RELATIONSHIP DIAGRAM) & DATA DICTIONARY](#6-erd-entity-relationship-diagram--data-dictionary)
    - [6.1 Sơ đồ quan hệ thực thể chuẩn hóa (Mermaid)](#61-sơ-đồ-quan-hệ-thực-thể-chuẩn-hóa-mermaid)
    - [6.2 Bảng từ điển dữ liệu (Data Dictionary khớp 100% Prisma Schema)](#62-bảng-từ-điển-dữ-liệu-data-dictionary-khớp-100-prisma-schema)
@@ -58,12 +62,29 @@ BrewLite là hệ thống phần mềm chuyên biệt phục vụ chuỗi dịch
 
 ### 2.1 Sơ đồ phân rã chức năng kinh doanh (Mermaid)
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/bfd.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/bfd.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#fef3c7',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#e0f2fe',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 graph TD
-    %% Định nghĩa các lớp màu học thuật
-    classDef root fill:#1b365d,stroke:#0f2042,color:#fff,stroke-width:2px;
-    classDef lvl1 fill:#2b547e,stroke:#1b365d,color:#fff,stroke-width:1.5px;
-    classDef lvl2 fill:#f0f4f8,stroke:#4863a0,color:#111,stroke-width:1px;
+    %% Định nghĩa các lớp màu sắc High-Contrast chữ đen
+    classDef root fill:#fef3c7,stroke:#1e293b,color:#000000,stroke-width:3px,font-weight:700;
+    classDef lvl1 fill:#e0f2fe,stroke:#1e293b,color:#000000,stroke-width:2px,font-weight:600;
+    classDef lvl2 fill:#ffffff,stroke:#1e293b,color:#000000,stroke-width:1.5px,font-weight:500;
 
     ROOT["0.0 HỆ THỐNG ĐẶT VÀ QUẢN LÝ CÀ PHÊ BREWLITE"]:::root
 
@@ -147,42 +168,59 @@ graph TD
 
 ### 3.1 Sơ đồ ngữ cảnh hệ thống (Mermaid)
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/dfd-lv0.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/dfd-lv0.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 flowchart TD
-    %% Tác nhân ngoài
-    ACT_CUST["Khách hàng (Customer)"]
-    ACT_STAFF["Nhân viên pha chế (Staff / Barista)"]
-    ACT_ADMIN["Quản trị viên (Store Admin)"]
-    ACT_GATEWAY["Cổng thanh toán / Đối tác (Mock Payment)"]
-    ACT_CRON["Hệ thống Tự động hóa (System Cron Daemon)"]
+    %% Định nghĩa các lớp kiểu dáng màu sắc High-Contrast chữ đen
+    classDef entity fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef process fill:#fef3c7,stroke:#1e293b,stroke-width:3px,color:#000000,font-weight:700;
+    classDef systemBox fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#000000;
 
-    %% Tiến trình mức ngữ cảnh
-    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT VÀ THANH TOÁN CÀ PHÊ BREWLITE"))
+    %% Tác nhân ngoài (External Entities)
+    ACT_CUST["👤 Khách hàng (Customer)"]:::entity
+    ACT_STAFF["🧑‍🍳 Nhân viên Barista (Staff)"]:::entity
+    ACT_ADMIN["👨‍💼 Quản trị viên (Store Admin)"]:::entity
+    ACT_GATEWAY["💳 Cổng thanh toán (Mock Gateway)"]:::entity
+    ACT_CRON["⏱️ Hệ thống Tự động (Cron Daemon)"]:::entity
 
-    %% Luồng giao tiếp Khách hàng
-    ACT_CUST -->|"1. Đăng ký, Đăng nhập, Tra cứu Menu, Gửi Đơn hàng (Items, Voucher), Yêu cầu Thanh toán (Idempotency-Key), Yêu cầu Hủy đơn"| SYS_MAIN
-    SYS_MAIN -->|"2. Token JWT, Danh mục sản phẩm, Mã đơn hàng (#10xx), Trạng thái thanh toán, Lịch sử đơn, Điểm Loyalty"| ACT_CUST
+    %% Tiến trình mức ngữ cảnh trung tâm
+    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT VÀ THANH TOÁN<br>CÀ PHÊ BREWLITE")):::process
 
-    %% Luồng giao tiếp Nhân viên Barista
-    SYS_MAIN -->|"3. Danh sách đơn hàng cần pha chế (KDS Queue), Chi tiết món, Size, Topping"| ACT_STAFF
-    ACT_STAFF -->|"4. Cập nhật tiến độ pha chế (PREPARING, READY, COMPLETED), Yêu cầu Hủy đơn sự cố (kèm hoàn kho)"| SYS_MAIN
+    %% Luồng dữ liệu Khách hàng
+    ACT_CUST -->|"1. Gửi thông tin đăng ký, đăng nhập,<br>giỏ hàng, voucher, yêu cầu thanh toán, hủy đơn"| SYS_MAIN
+    SYS_MAIN -->|"2. Phản hồi Token JWT, danh mục menu,<br>mã đơn #10xx, trạng thái đơn, điểm Loyalty"| ACT_CUST
 
-    %% Luồng giao tiếp Quản trị viên
-    ACT_ADMIN -->|"5. Cấu hình sản phẩm, Điều chỉnh kho, Quản lý tài khoản người dùng, Tra cứu tổng thể đơn"| SYS_MAIN
-    SYS_MAIN -->|"6. Báo cáo trạng thái kho, Nhật ký đơn hàng, Thông tin kiểm toán hệ thống"| ACT_ADMIN
+    %% Luồng dữ liệu Nhân viên Barista
+    SYS_MAIN -->|"3. Danh sách đơn chờ pha chế (KDS FIFO),<br>chi tiết món, Size S/M/L, Toppings"| ACT_STAFF
+    ACT_STAFF -->|"4. Cập nhật trạng thái (PREPARING, READY, COMPLETED),<br>lệnh hủy đơn sự cố tại quầy (kèm hoàn kho)"| SYS_MAIN
 
-    %% Luồng giao tiếp Cổng thanh toán
-    SYS_MAIN -->|"7. Dữ liệu giao dịch (Mã đơn, Số tiền, Phương thức Ví/Thẻ, Idempotency-Key)"| ACT_GATEWAY
-    ACT_GATEWAY -->|"8. Kết quả xác thực giao dịch (Giao dịch thành công / Thất bại do thẻ/số dư)"| SYS_MAIN
+    %% Luồng dữ liệu Quản trị viên
+    ACT_ADMIN -->|"5. Cấu hình sản phẩm, điều chỉnh kho tồn,<br>phân quyền tài khoản RBAC, giám sát đơn"| SYS_MAIN
+    SYS_MAIN -->|"6. Báo cáo trạng thái kho, nhật ký giao dịch,<br>thông tin kiểm toán hệ thống (Audit Logs)"| ACT_ADMIN
 
-    %% Luồng giao tiếp Cron Daemon
-    ACT_CRON -->|"9. Tín hiệu kích hoạt dọn dẹp định kỳ (Trigger mỗi 5 phút)"| SYS_MAIN
-    SYS_MAIN -->|"10. Kết quả thu hồi kho & chuyển trạng thái CANCELLED cho các đơn quá hạn"| ACT_CRON
+    %% Luồng dữ liệu Cổng thanh toán
+    SYS_MAIN -->|"7. Dữ liệu giao dịch (Mã đơn, số tiền,<br>phương thức Ví/Thẻ, Idempotency-Key)"| ACT_GATEWAY
+    ACT_GATEWAY -->|"8. Kết quả xác thực giao dịch<br>(SUCCESS / FAILED)"| SYS_MAIN
 
-    classDef entity fill:#fbfbfb,stroke:#333,stroke-width:2px,color:#000;
-    classDef process fill:#d9edf7,stroke:#31708f,stroke-width:3px,color:#000;
-    class ACT_CUST,ACT_STAFF,ACT_ADMIN,ACT_GATEWAY,ACT_CRON entity;
-    class SYS_MAIN process;
+    %% Luồng dữ liệu Cron Daemon
+    ACT_CRON -->|"9. Tín hiệu trigger định kỳ (mỗi 5 phút)"| SYS_MAIN
+    SYS_MAIN -->|"10. Kết quả thu hồi kho & hủy đơn quá hạn 15p"| ACT_CRON
 ```
 
 ---
@@ -208,97 +246,100 @@ flowchart TD
 
 ### 4.1 Sơ đồ luồng dữ liệu mức 1 phân rã chi tiết (Mermaid)
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/dfd-lv1.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/dfd-lv1.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
-flowchart TD
-    %% Định nghĩa các Tác nhân ngoài (External Entities - Cân bằng 100% với DFD Lv0)
-    subgraph ENTITIES ["TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)"]
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#fef3c7',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#e0f2fe',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart TB
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef entityBox fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef processBubble fill:#fef3c7,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:600;
+    classDef storeBox fill:#f3e8ff,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+
+    %% TẦNG 1: TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)
+    subgraph TIER_ENTITIES ["TẦNG 1: TÁC NHÂN NGOÀI (EXTERNAL ENTITIES)"]
         direction LR
-        CUST["Khách hàng (Customer)"]
-        STAFF["Nhân viên (Staff / Barista)"]
-        ADMIN["Quản trị viên (Store Admin)"]
-        GATEWAY["Cổng thanh toán (Mock Gateway)"]
-        CRON["Hệ thống Tự động (Cron Scheduler)"]
+        CUST["👤 Khách hàng<br>(Customer)"]:::entityBox
+        STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / KDS)"]:::entityBox
+        ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::entityBox
+        GATEWAY["💳 Cổng thanh toán<br>(Mock Gateway)"]:::entityBox
+        CRON["⏱️ Hệ thống Tự động<br>(Cron Scheduler)"]:::entityBox
     end
 
-    %% Định nghĩa 5 Tiến trình chính + 1 Tiến trình Tự động
-    subgraph PROCESSES ["TIẾN TRÌNH XỬ LÝ (CORE PROCESSES)"]
-        P1(("1.0 Xác thực & Quản lý Tài khoản"))
-        P2(("2.0 Quản lý Thực đơn & Tồn kho"))
-        P3(("3.0 Xử lý Đặt hàng & Trừ kho Optimistic"))
-        P4(("4.0 Xử lý Thanh toán & Tích điểm"))
-        P5(("5.0 Điều phối Pha chế & Màn hình KDS"))
-        P6(("6.0 Tự động dọn dẹp & Thu hồi đơn hết hạn"))
+    %% TẦNG 2: CÁC TIẾN TRÌNH XỬ LÝ CỐT LÕI (CORE PROCESSES)
+    subgraph TIER_PROCESSES ["TẦNG 2: TIẾN TRÌNH XỬ LÝ NGHIỆP VỤ (PROCESSES)"]
+        P1(("1.0 Xác thực &<br>Quản lý Tài khoản")):::processBubble
+        P2(("2.0 Quản lý Thực đơn<br>& Tra cứu Tồn kho")):::processBubble
+        P3(("3.0 Xử lý Đặt hàng<br>& Trừ kho Optimistic")):::processBubble
+        P4(("4.0 Xử lý Thanh toán<br>& Tích điểm Idempotent")):::processBubble
+        P5(("5.0 Điều phối Pha chế<br>& Màn hình KDS")):::processBubble
+        P6(("6.0 Tự động Dọn dẹp<br>& Hoàn kho Đơn quá hạn")):::processBubble
     end
 
-    %% Định nghĩa 6 Kho dữ liệu chuẩn hóa (Data Stores)
-    subgraph STORES ["KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)"]
-        direction TB
-        D1[("D1: users")]
-        D2[("D2: products")]
-        D3[("D3: orders")]
-        D4[("D4: order_items")]
-        D5[("D5: payments")]
-        D6[("D6: vouchers")]
+    %% TẦNG 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)
+    subgraph TIER_STORES ["TẦNG 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)"]
+        direction LR
+        D1[("[(D1)]<br>users")]:::storeBox
+        D2[("[(D2)]<br>products")]:::storeBox
+        D3[("[(D3)]<br>orders")]:::storeBox
+        D4[("[(D4)]<br>order_items")]:::storeBox
+        D5[("[(D5)]<br>payments")]:::storeBox
+        D6[("[(D6)]<br>vouchers")]:::storeBox
     end
 
-    %% Tương tác Tiến trình 1.0 (Auth & User)
-    CUST -->|"Đăng ký / Đăng nhập"| P1
-    P1 -->|"Đọc / Ghi thông tin User"| D1
-    P1 -->|"Trả về Token JWT & Role"| CUST
-    ADMIN -->|"Cập nhật Role / Khóa tài khoản"| P1
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 1.0 (Auth & Account)
+    CUST <-->|"1. Đăng ký / Đăng nhập / Token"| P1
+    ADMIN -->|"Cấu hình RBAC / Khóa tài khoản"| P1
+    P1 <-->|"Ghi nhận / Đọc thông tin User, PasswordHash"| D1
 
-    %% Tương tác Tiến trình 2.0 (Menu / Products)
-    CUST -->|"Yêu cầu xem Menu"| P2
-    P2 -->|"Đọc danh sách sản phẩm & giá"| D2
-    P2 -->|"Trả về danh mục sản phẩm, options"| CUST
-    ADMIN -->|"Cập nhật món & Điều chỉnh tồn kho"| P2
-    P2 -->|"Ghi cập nhật sản phẩm & tồn kho"| D2
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 2.0 (Menu & Catalog)
+    CUST <-->|"2. Tra cứu danh mục Menu & Đồ uống"| P2
+    ADMIN <-->|"Cập nhật giá, thêm món, điều chỉnh kho"| P2
+    P2 <-->|"Đọc danh mục / Cập nhật sản phẩm & kho"| D2
 
-    %% Tương tác Tiến trình 3.0 (Orders & Stock)
-    CUST -->|"Gửi giỏ hàng, mã voucher"| P3
-    P3 -->|"1. Đọc & xác thực mã voucher"| D6
-    P3 -->|"2. Đọc giá gốc & Kiểm tra tồn kho"| D2
-    P3 -->|"3. Optimistic Lock (stock -= qty, ver += 1)"| D2
-    P3 -->|"4. Tạo đơn PENDING (expiresAt = +15m)"| D3
-    P3 -->|"5. Lưu snapshot chi tiết món"| D4
-    P3 -->|"Trả về mã đơn (#10xx) & hạn thanh toán"| CUST
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 3.0 (Ordering & Stock Allocation)
+    CUST -->|"3. Gửi giỏ hàng & Mã Voucher"| P3
+    P3 -->|"Phản hồi mã đơn #10xx & Hạn 15p"| CUST
+    P3 -->|"Xác thực voucher & Đọc minOrder"| D6
+    P3 <-->|"Trừ kho Optimistic (stock -= qty, ver += 1)"| D2
+    P3 -->|"Tạo đơn PENDING (expiresAt = now + 15m)"| D3
+    P3 -->|"Lưu snapshot danh sách món, size, topping"| D4
 
-    %% Tương tác Tiến trình 4.0 (Payments & Loyalty)
-    CUST -->|"Yêu cầu thanh toán (Idempotency-Key, Method)"| P4
-    P4 -->|"1. Kiểm tra trùng khóa thanh toán"| D5
-    P4 -->|"2. Đọc trạng thái đơn & assertTransition"| D3
-    P4 -->|"3. Gửi lệnh thanh toán"| GATEWAY
-    GATEWAY -->|"4. Phản hồi kết quả (SUCCESS / FAILED)"| P4
-    P4 -->|"5. Ghi log giao dịch Payment"| D5
-    P4 -->|"6. Chuyển trạng thái PAID hoặc FAILED"| D3
-    P4 -->|"7. Tăng usedCount voucher (nếu có)"| D6
-    P4 -->|"8. Cộng điểm Loyalty (1đ/10k)"| D1
-    P4 -.->|"Nếu FAILED: Hoàn tồn kho"| D2
-    P4 -->|"Phản hồi kết quả thanh toán & điểm thưởng"| CUST
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 4.0 (Payments & Idempotency)
+    CUST -->|"4. Yêu cầu thanh toán (Idempotency-Key)"| P4
+    P4 -->|"Kết quả thanh toán & Điểm Loyalty"| CUST
+    P4 <-->|"Gửi lệnh thanh toán / Nhận kết quả GD"| GATEWAY
+    P4 <-->|"Kiểm tra trùng khóa / Ghi nhận Payment"| D5
+    P4 -->|"Cập nhật đơn PAID (hoặc PAYMENT_FAILED)"| D3
+    P4 -->|"Tăng usedCount voucher thành công"| D6
+    P4 -->|"Cộng điểm Loyalty (1đ / 10k)"| D1
+    P4 -.->|"Nếu thanh toán lỗi: Tự động hoàn kho"| D2
 
-    %% Tương tác Tiến trình 5.0 (Barista KDS & Staff)
-    STAFF -->|"Truy vấn danh sách đơn chờ pha chế"| P5
-    P5 -->|"Đọc các đơn (PAID, PREPARING, READY)"| D3
-    P5 -->|"Đọc chi tiết món, size, topping"| D4
-    P5 -->|"Trả về danh sách đơn KDS FIFO"| STAFF
-    STAFF -->|"Cập nhật trạng thái (PREPARING, READY, COMPLETED)"| P5
-    P5 -->|"Cập nhật trạng thái đơn hàng"| D3
-    STAFF -->|"Hủy đơn sự cố tại quầy (PAID sang CANCELLED)"| P5
-    P5 -.->|"Hoàn trả tồn kho khi hủy đơn"| D2
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 5.0 (Barista KDS & Fulfillment)
+    STAFF <-->|"5. Nhận hàng đợi KDS (FIFO) / Cập nhật tiến độ"| P5
     ADMIN -->|"Giám sát hàng đợi & Can thiệp đơn KDS"| P5
+    P5 <-->|"Đọc đơn PAID/PREPARING/READY & Cập nhật trạng thái"| D3
+    P5 -->|"Đọc chi tiết món, size, topping"| D4
+    P5 -.->|"Hủy đơn sự cố tại quầy: Hoàn kho sản phẩm"| D2
 
-    %% Tương tác Tiến trình 6.0 (Cron Cleanup)
-    CRON -->|"Kích hoạt định kỳ (5 phút/lần)"| P6
-    P6 -->|"Quét đơn PENDING có expiresAt < now()"| D3
-    P6 -->|"Chuyển trạng thái đơn sang CANCELLED"| D3
-    P6 -->|"Cộng hoàn trả tồn kho sản phẩm"| D2
-
-    classDef entityBox fill:#fdfefe,stroke:#2c3e50,stroke-width:2px;
-    classDef processBubble fill:#ebf5fb,stroke:#2980b9,stroke-width:2px;
-    classDef storeBox fill:#fef9e7,stroke:#f39c12,stroke-width:2px;
-    class CUST,STAFF,ADMIN,GATEWAY,CRON entityBox;
-    class P1,P2,P3,P4,P5,P6 processBubble;
-    class D1,D2,D3,D4,D5,D6 storeBox;
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 6.0 (Cron Cleanup & Timeout)
+    CRON -->|"6. Kích hoạt dọn dẹp định kỳ (5 phút/lần)"| P6
+    P6 <-->|"Quét đơn PENDING quá hạn & Chuyển CANCELLED"| D3
+    P6 -->|"Tự động hoàn trả tồn kho (stock += qty)"| D2
 ```
 
 ---
@@ -343,99 +384,276 @@ flowchart TD
 
 ## 5. USE CASE DIAGRAM & ĐẶC TẢ KỊCH BẢN USE CASE CHUẨN ACADEMIC
 
-### 5.1 Sơ đồ Use Case tổng thể theo 4 tác nhân (Mermaid)
+### 5.1 Sơ đồ Use Case tổng quan tinh gọn (Overview — 4 Actors, 5 Packages)
+
+Sơ đồ tổng quan cấp cao kết nối 4 tác nhân chính tới 5 phân hệ chức năng cốt lõi của BrewLite, loại bỏ hiện tượng rối dây phức tạp và tạo góc nhìn phân rã rõ ràng theo từng miền nghiệp vụ:
+
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/usecase-overview.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/usecase-overview.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
 
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 flowchart LR
-    %% Định nghĩa các Actors
-    subgraph ACTORS ["CÁC TÁC NHÂN (ACTORS)"]
+    %% Định nghĩa các lớp màu sắc High-Contrast chữ đen
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef pkgNode fill:#fef3c7,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef adminPkg fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+
+    %% 4 TÁC NHÂN (ACTORS)
+    subgraph ACTORS ["CÁC TÁC NHÂN HỆ THỐNG (ACTORS)"]
         direction TB
-        ACT_CUSTOMER["Khách hàng<br>(Customer)"]
-        ACT_STAFF["Nhân viên pha chế<br>(Staff / Barista)"]
-        ACT_ADMIN["Quản trị viên<br>(Store Admin)"]
-        ACT_SYSTEM["Hệ thống tự động<br>(System Cron Daemon)"]
+        ACT_CUSTOMER["👤 Khách hàng<br>(Customer)"]:::actorNode
+        ACT_STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / Barista)"]:::actorNode
+        ACT_ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+        ACT_CRON["⏱️ Hệ thống Tự động<br>(System Cron Daemon)"]:::actorNode
     end
 
     %% Kế thừa vai trò
-    ACT_ADMIN -.->|"kế thừa quyền"| ACT_STAFF
+    ACT_ADMIN -.->|"«generalizes»<br>Kế thừa quyền quầy"| ACT_STAFF
 
-    %% Phân nhóm chức năng Use Cases
-    subgraph UC_AUTH ["Phân hệ Tài khoản"]
-        UC01["Đăng ký tài khoản"]
-        UC02["Đăng nhập hệ thống"]
-        UC03["Xem hồ sơ & Điểm thưởng"]
+    %% 5 PHÂN HỆ USE CASE CHÍNH (SYSTEM PACKAGES)
+    subgraph PACKAGES ["CÁC PHÂN HỆ USE CASE CỐT LÕI (SYSTEM PACKAGES)"]
+        direction TB
+        PKG_AUTH["🔐 [PKG-01] Phân hệ Xác thực & Hồ sơ<br>• Đăng ký / Đăng nhập JWT<br>• Tra cứu hồ sơ & Điểm tích lũy"]:::pkgNode
+        PKG_ORDER["☕ [PKG-02] Phân hệ Thực đơn & Đặt đồ uống<br>• Tra cứu Menu, Chọn Size / Toppings<br>• Quản trị giỏ hàng, Đặt đơn PENDING<br>• Trừ kho Optimistic Locking, Hủy đơn"]:::pkgNode
+        PKG_PAYMENT["💳 [PKG-03] Phân hệ Thanh toán & Điểm thưởng<br>• Áp dụng mã khuyến mãi Voucher<br>• Thanh toán Idempotent (Ví/Thẻ)<br>• Phòng thủ P2002, Tự động cộng Loyalty"]:::pkgNode
+        PKG_KDS["📋 [PKG-04] Phân hệ Pha chế & Quầy (KDS)<br>• Hàng đợi đơn hàng FIFO thời gian thực<br>• Chuyển trạng thái PAID ➔ PREPARING ➔ READY<br>• Bàn giao COMPLETED, Hủy sự cố tại quầy"]:::pkgNode
+        PKG_ADMIN["⚙️ [PKG-05] Phân hệ Quản trị & Tự động hóa<br>• Quản lý giá món, công thức, tồn kho<br>• Phân quyền RBAC, kiểm toán hệ thống<br>• Cron Job dọn dẹp đơn quá hạn 15 phút<br>• Cơ chế Lazy-Check Timeout khi xem đơn"]:::adminPkg
     end
 
-    subgraph UC_ORDERING ["Phân hệ Đặt hàng"]
-        UC04["Xem thực đơn & Tùy biến món"]
-        UC05["Quản lý giỏ hàng"]
-        UC06["Áp dụng mã Voucher"]
-        UC07["Khởi tạo đơn hàng"]
-        UC08["Trừ kho Optimistic Lock"]
-        UC09["Hủy đơn hàng của tôi"]
-    end
+    %% KẾT NỐI TÁC NHÂN TỚI PHÂN HỆ
+    ACT_CUSTOMER ==>|"Tương tác"| PKG_AUTH
+    ACT_CUSTOMER ==>|"Tương tác"| PKG_ORDER
+    ACT_CUSTOMER ==>|"Tương tác"| PKG_PAYMENT
 
-    subgraph UC_PAYMENT ["Phân hệ Thanh toán"]
-        UC10["Thanh toán không tiền mặt"]
-        UC11["Kiểm tra Idempotency-Key"]
-        UC12["Xử lý lỗi & Hoàn kho"]
-        UC13["Tích điểm thưởng Loyalty"]
-    end
+    ACT_STAFF ==>|"Vận hành"| PKG_KDS
 
-    subgraph UC_FULFILLMENT ["Phân hệ Pha chế (KDS) & Vận hành"]
-        UC14["Xem hàng đợi chế biến KDS"]
-        UC15["Tiếp nhận pha chế (PREPARING)"]
-        UC16["Báo hoàn tất món (READY)"]
-        UC17["Bàn giao đồ uống (COMPLETED)"]
-        UC18["Hủy đơn sự cố tại quầy"]
-        UC19["Quản lý danh mục & Kho món"]
-    end
+    ACT_ADMIN ==>|"Toàn quyền"| PKG_ADMIN
+    ACT_ADMIN -.->|"Can thiệp trực tiếp"| PKG_KDS
+    ACT_ADMIN -.->|"Quản trị dữ liệu"| PKG_ORDER
 
-    subgraph UC_SYSTEM ["Phân hệ Tự động hóa"]
-        UC20["Dọn dẹp đơn quá hạn 15 phút"]
-        UC21["Lazy-Check Timeout khi xem đơn"]
-    end
-
-    %% Quan hệ Actor -> Use Case
-    ACT_CUSTOMER --> UC01
-    ACT_CUSTOMER --> UC02
-    ACT_CUSTOMER --> UC03
-    ACT_CUSTOMER --> UC04
-    ACT_CUSTOMER --> UC05
-    ACT_CUSTOMER --> UC07
-    ACT_CUSTOMER --> UC09
-    ACT_CUSTOMER --> UC10
-
-    ACT_STAFF --> UC14
-    ACT_STAFF --> UC15
-    ACT_STAFF --> UC16
-    ACT_STAFF --> UC17
-    ACT_STAFF --> UC18
-
-    ACT_ADMIN --> UC19
-    ACT_ADMIN --> UC03
-
-    ACT_SYSTEM --> UC20
-    ACT_SYSTEM --> UC21
-
-    %% Quan hệ Include & Extend (Chuẩn UML 2.5: Mũi tên extend đi từ Extension Use Case tới Base Use Case)
-    UC07 -.->|"«include»"| UC08
-    UC06 -.->|"«extend»"| UC07
-    UC10 -.->|"«include»"| UC11
-    UC10 -.->|"«include»"| UC13
-    UC12 -.->|"«extend»"| UC10
-    UC18 -.->|"«include»"| UC12
-    UC20 -.->|"«include»"| UC12
-
-    classDef actorNode fill:#fbfbfb,stroke:#2b547e,stroke-width:2px;
-    classDef ucNode fill:#eaf2f8,stroke:#3498db,stroke-width:1.5px;
-    class ACT_CUSTOMER,ACT_STAFF,ACT_ADMIN,ACT_SYSTEM actorNode;
-    class UC01,UC02,UC03,UC04,UC05,UC06,UC07,UC08,UC09,UC10,UC11,UC12,UC13,UC14,UC15,UC16,UC17,UC18,UC19,UC20,UC21 ucNode;
+    ACT_CRON ==>|"Tự động kích hoạt"| PKG_ADMIN
 ```
 
 ---
 
-### 5.2 Đặc tả Use Case UC-01: Đặt đồ uống & Áp mã Voucher
+### 5.2 Sơ đồ Use Case phân rã chi tiết — Khách hàng (Customer Use Cases)
+
+Biểu đồ tập trung toàn bộ hành trình tương tác của khách hàng từ khi xem món, tùy biến, áp mã voucher, khởi tạo đơn (kèm trừ kho Optimistic Locking), thanh toán Idempotent đến khi tích điểm Loyalty hoặc hủy đơn:
+
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/usecase-customer.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/usecase-customer.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef baseUC fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef subUC fill:#fef3c7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+    classDef dangerUC fill:#fee2e2,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+    classDef successUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+
+    %% TÁC NHÂN CHÍNH
+    CUST["👤 Khách hàng<br>(Customer)"]:::actorNode
+
+    %% CÁC USE CASE CỐT LÕI
+    subgraph UC_CUSTOMER ["PHÂN HỆ CHỨC NĂNG DÀNH CHO KHÁCH HÀNG"]
+        direction TB
+
+        subgraph G_ACCOUNT ["1. Quản lý Tài khoản"]
+            UC_AUTH(["Đăng ký & Đăng nhập"]):::baseUC
+            UC_PROFILE(["Xem hồ sơ & Điểm Loyalty"]):::baseUC
+        end
+
+        subgraph G_ORDER ["2. Đặt hàng & Thực đơn"]
+            UC_BROWSE(["Xem menu & Tùy biến món"]):::baseUC
+            UC_CART(["Quản lý giỏ hàng"]):::baseUC
+            UC_PLACE_ORDER(["Khởi tạo đơn hàng"]):::baseUC
+            UC_VOUCHER(["Áp dụng mã Voucher"]):::subUC
+            UC_OPT_LOCK(["Trừ kho Optimistic Locking"]):::subUC
+            UC_CANCEL_MY(["Hủy đơn hàng của tôi"]):::baseUC
+        end
+
+        subgraph G_PAYMENT ["3. Thanh toán & Tích điểm"]
+            UC_PAY(["Thanh toán không tiền mặt"]):::baseUC
+            UC_IDEMPOTENT(["Kiểm tra Idempotency-Key"]):::subUC
+            UC_LOYALTY(["Cộng điểm thưởng Loyalty"]):::successUC
+            UC_PAY_FAIL(["Xử lý lỗi & Tự động hoàn kho"]):::dangerUC
+        end
+    end
+
+    %% TƯƠNG TÁC TÁC NHÂN -> USE CASE
+    CUST --> UC_AUTH
+    CUST --> UC_PROFILE
+    CUST --> UC_BROWSE
+    CUST --> UC_CART
+    CUST --> UC_PLACE_ORDER
+    CUST --> UC_CANCEL_MY
+    CUST --> UC_PAY
+
+    %% QUAN HỆ INCLUDE & EXTEND (Chuẩn UML 2.5)
+    UC_PLACE_ORDER -.->|"«include»"| UC_OPT_LOCK
+    UC_VOUCHER -.->|"«extend»"| UC_PLACE_ORDER
+
+    UC_PAY -.->|"«include»"| UC_IDEMPOTENT
+    UC_PAY -.->|"«include»"| UC_LOYALTY
+    UC_PAY_FAIL -.->|"«extend»"| UC_PAY
+```
+
+---
+
+### 5.3 Sơ đồ Use Case phân rã chi tiết — Nhân viên Barista (Staff / KDS Use Cases)
+
+Biểu đồ đặc tả quy trình vận hành tại quầy pha chế thông qua hệ thống hiển thị bếp (KDS), bao gồm quản lý hàng đợi FIFO, điều phối nấc pha chế và xử lý hủy đơn sự cố kèm hoàn kho tự động:
+
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/usecase-staff.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/usecase-staff.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef baseUC fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef actionUC fill:#fef3c7,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef subUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+    classDef cancelUC fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+
+    %% TÁC NHÂN
+    STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / Barista)"]:::actorNode
+    ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+
+    ADMIN -.->|"«generalizes»<br>Kế thừa quyền quầy"| STAFF
+
+    %% PHÂN HỆ VẬN HÀNH KDS
+    subgraph UC_KDS ["PHÂN HỆ QUẦY PHA CHẾ & ĐIỀU PHỐI KDS"]
+        direction TB
+
+        UC_QUEUE(["Xem hàng đợi KDS<br>(Thứ tự FIFO thời gian thực)"]):::baseUC
+        UC_PREP(["Tiếp nhận pha chế<br>(Chuyển sang PREPARING)"]):::actionUC
+        UC_READY(["Báo hoàn tất làm món<br>(Chuyển sang READY)"]):::actionUC
+        UC_COMPLETE(["Bàn giao đồ uống cho khách<br>(Chuyển sang COMPLETED)"]):::subUC
+        UC_CANCEL_STAFF(["Hủy đơn sự cố tại quầy<br>(PAID sang CANCELLED)"]):::cancelUC
+        UC_RESTOCK(["Tự động hoàn kho sản phẩm<br>(Atomic Rollback)"]):::subUC
+    end
+
+    %% TƯƠNG TÁC TÁC NHÂN -> USE CASE
+    STAFF --> UC_QUEUE
+    STAFF --> UC_PREP
+    STAFF --> UC_READY
+    STAFF --> UC_COMPLETE
+    STAFF --> UC_CANCEL_STAFF
+
+    %% QUAN HỆ INCLUDE
+    UC_CANCEL_STAFF -.->|"«include»"| UC_RESTOCK
+```
+
+---
+
+### 5.4 Sơ đồ Use Case phân rã chi tiết — Quản trị viên & Tự động hóa (Admin & System Cron)
+
+Biểu đồ đặc tả các tác vụ đặc quyền quản trị danh mục/kho/người dùng cùng 2 cơ chế tự động hóa dọn dẹp đơn quá hạn 15 phút (Cron Daemon 5 phút/lần & Lazy-Check Timeout khi xem đơn):
+
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/usecase-admin-cron.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/usecase-admin-cron.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
+```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef adminUC fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef cronUC fill:#fef3c7,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef subUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+
+    %% TÁC NHÂN
+    ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+    CRON["⏱️ Hệ thống Tự động<br>(System Cron Daemon)"]:::actorNode
+
+    %% PHÂN HỆ QUẢN TRỊ & TỰ ĐỘNG HÓA
+    subgraph UC_ADMIN_CRON ["PHÂN HỆ QUẢN TRỊ VẬN HÀNH & TỰ ĐỘNG HÓA"]
+        direction TB
+
+        subgraph G_ADMIN ["Nghiệp vụ Quản trị Cửa hàng"]
+            UC_MENU(["Cấu hình menu, giá & tồn kho món"]):::adminUC
+            UC_RBAC(["Quản lý tài khoản & Phân quyền RBAC"]):::adminUC
+            UC_AUDIT(["Giám sát toàn diện & Can thiệp KDS"]):::adminUC
+        end
+
+        subgraph G_CRON ["Nghiệp vụ Tự động hóa & Timeout (ADR-007)"]
+            UC_CRON_JOB(["Dọn dẹp đơn quá hạn 15 phút<br>(Cron Job chạy 5 phút/lần)"]):::cronUC
+            UC_LAZY_TIMEOUT(["Cơ chế Lazy-Check Timeout<br>(Kích hoạt khi tra cứu đơn GET)"]):::cronUC
+            UC_AUTO_RESTOCK(["Tự động thu hồi & Hoàn trả tồn kho<br>(Atomic Transaction)"]):::subUC
+        end
+    end
+
+    %% TƯƠNG TÁC TÁC NHÂN -> USE CASE
+    ADMIN --> UC_MENU
+    ADMIN --> UC_RBAC
+    ADMIN --> UC_AUDIT
+
+    CRON --> UC_CRON_JOB
+    CRON --> UC_LAZY_TIMEOUT
+
+    %% QUAN HỆ INCLUDE
+    UC_CRON_JOB -.->|"«include»"| UC_AUTO_RESTOCK
+    UC_LAZY_TIMEOUT -.->|"«include»"| UC_AUTO_RESTOCK
+```
+
+### 5.5 Đặc tả Use Case UC-01: Đặt đồ uống & Áp mã Voucher
 
 | Mục đặc tả | Nội dung chi tiết |
 |---|---|
@@ -452,7 +670,7 @@ flowchart LR
 
 ---
 
-### 5.3 Đặc tả Use Case UC-02: Thanh toán không tiền mặt Idempotent
+### 5.6 Đặc tả Use Case UC-02: Thanh toán không tiền mặt Idempotent
 
 | Mục đặc tả | Nội dung chi tiết |
 |---|---|
@@ -469,7 +687,7 @@ flowchart LR
 
 ---
 
-### 5.4 Đặc tả Use Case UC-03: Barista tiếp nhận & Cập nhật chế biến đơn tại KDS
+### 5.7 Đặc tả Use Case UC-03: Barista tiếp nhận & Cập nhật chế biến đơn tại KDS
 
 | Mục đặc tả | Nội dung chi tiết |
 |---|---|
@@ -492,9 +710,23 @@ flowchart LR
 
 Sơ đồ quan hệ thực thể dưới đây được thiết kế và ánh xạ **chính xác 100%** theo định nghĩa lược đồ dữ liệu `apps/backend/prisma/schema.prisma` của dự án BrewLite:
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/erd.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/erd.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#ffffff',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 erDiagram
-    %% Định nghĩa các thực thể và quan hệ
+    %% Định nghĩa các thực thể và quan hệ chuẩn hóa 100% Prisma Schema
     User ||--o{ Order : "places"
     Order ||--|{ OrderItem : "contains"
     Product ||--o{ OrderItem : "referenced_in"
@@ -677,7 +909,37 @@ erDiagram
 
 Sơ đồ mô tả quy trình thực thi API `POST /api/orders`, minh họa cách thức bảo vệ giá từ cơ sở dữ liệu, thẩm định voucher và áp dụng kỹ thuật **Optimistic Locking** trên PostgreSQL để giải quyết triệt để bài toán bán vượt kho (Overselling) khi có nhiều yêu cầu đặt hàng đồng thời:
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/sequence-order-creation.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/sequence-order-creation.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'actorBkg': '#e0f2fe',
+    'actorBorder': '#1e293b',
+    'actorTextColor': '#000000',
+    'actorLineColor': '#1e293b',
+    'signalColor': '#1e293b',
+    'signalTextColor': '#000000',
+    'labelBoxBkgColor': '#fef3c7',
+    'labelBoxBorderColor': '#1e293b',
+    'labelTextColor': '#000000',
+    'loopTextColor': '#000000',
+    'noteBorderColor': '#1e293b',
+    'noteBkgColor': '#fef3c7',
+    'noteTextColor': '#000000',
+    'activationBorderColor': '#1e293b',
+    'activationBkgColor': '#cbd5e1',
+    'sequenceNumberColor': '#000000',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 sequenceDiagram
     autonumber
     actor Customer as "Khách hàng (Client App)"
@@ -756,7 +1018,37 @@ sequenceDiagram
 
 Sơ đồ mô tả quy trình thực thi API `POST /api/payments`, minh họa cơ chế bảo vệ giao dịch không lặp tiền (Idempotency), xử lý lỗi va chạm `Prisma P2002`, quy trình hoàn kho khi giả lập lỗi thanh toán (`forceFail`) và cộng điểm thưởng thành viên:
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/sequence-idempotent-payment.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/sequence-idempotent-payment.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'actorBkg': '#e0f2fe',
+    'actorBorder': '#1e293b',
+    'actorTextColor': '#000000',
+    'actorLineColor': '#1e293b',
+    'signalColor': '#1e293b',
+    'signalTextColor': '#000000',
+    'labelBoxBkgColor': '#fef3c7',
+    'labelBoxBorderColor': '#1e293b',
+    'labelTextColor': '#000000',
+    'loopTextColor': '#000000',
+    'noteBorderColor': '#1e293b',
+    'noteBkgColor': '#fef3c7',
+    'noteTextColor': '#000000',
+    'activationBorderColor': '#1e293b',
+    'activationBkgColor': '#cbd5e1',
+    'sequenceNumberColor': '#000000',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 sequenceDiagram
     autonumber
     actor Customer as "Khách hàng"
@@ -850,7 +1142,22 @@ sequenceDiagram
 
 Sơ đồ máy trạng thái biểu diễn chính xác cấu trúc định nghĩa trong tệp `apps/backend/src/common/state-machine/order-state-machine.ts`, chuẩn hóa theo Mục 9.1 tài liệu đặc tả đồ án BrewLite và các quyết định kỹ thuật trong **ADR-007**:
 
+> **Tài nguyên biểu đồ:** [Mã nguồn Mermaid (.mmd)](./diagrams/order-state-machine.mmd) &bull; [Ảnh Vector SVG phóng to 1.000%](./diagrams/svg/order-state-machine.svg) &bull; Nhập vào Draw.io: `Ctrl + Shift + I`
+
 ```mermaid
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
 stateDiagram-v2
     direction LR
 
@@ -881,10 +1188,10 @@ stateDiagram-v2
     PAID --> CANCELLED : Nhân viên quầy hủy sự cố (chưa sang PREPARING)
     CANCELLED --> [*] : Kết thúc chu trình hủy đơn
 
-    classDef successState fill:#d4edda,stroke:#28a745,color:#155724,stroke-width:2px;
-    classDef failedState fill:#f8d7da,stroke:#dc3545,color:#721c24,stroke-width:2px;
-    classDef cancelState fill:#e2e3e5,stroke:#6c757d,color:#383d41,stroke-width:2px;
-    classDef activeState fill:#cce5ff,stroke:#004085,color:#004085,stroke-width:2px;
+    classDef successState fill:#dcfce7,stroke:#1e293b,color:#000000,stroke-width:2px;
+    classDef failedState fill:#fee2e2,stroke:#1e293b,color:#000000,stroke-width:2px;
+    classDef cancelState fill:#f1f5f9,stroke:#1e293b,color:#000000,stroke-width:2px;
+    classDef activeState fill:#e0f2fe,stroke:#1e293b,color:#000000,stroke-width:2px;
 
     class PENDING,PAID,PREPARING,READY activeState;
     class COMPLETED successState;

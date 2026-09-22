@@ -1,0 +1,98 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'actorBkg': '#e0f2fe',
+    'actorBorder': '#1e293b',
+    'actorTextColor': '#000000',
+    'actorLineColor': '#1e293b',
+    'signalColor': '#1e293b',
+    'signalTextColor': '#000000',
+    'labelBoxBkgColor': '#fef3c7',
+    'labelBoxBorderColor': '#1e293b',
+    'labelTextColor': '#000000',
+    'loopTextColor': '#000000',
+    'noteBorderColor': '#1e293b',
+    'noteBkgColor': '#fef3c7',
+    'noteTextColor': '#000000',
+    'activationBorderColor': '#1e293b',
+    'activationBkgColor': '#cbd5e1',
+    'sequenceNumberColor': '#000000',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    actor Customer as "Khách hàng (Client App)"
+    participant FE as "Next.js Frontend (Cart)"
+    participant Controller as "OrdersController"
+    participant OrdersSvc as "OrdersService"
+    participant VouchersSvc as "VouchersService"
+    participant DB as "PostgreSQL (Prisma Transaction)"
+
+    Customer->>FE: Bấm nút "Đặt hàng & Thanh toán"
+    FE->>Controller: POST /api/orders (Bearer JWT)<br>{ items: [{ productId, size, toppings, qty }], voucherCode }
+    Controller->>OrdersSvc: createOrder(userId, dto)
+
+    Note over OrdersSvc,DB: Bước 1: Bảo vệ toàn vẹn giá từ CSDL (Chống can thiệp giá Client)
+    OrdersSvc->>DB: prisma.product.findMany({ where: { id: { in: productIds } } })
+    DB-->>OrdersSvc: Trả về danh sách Product mẫu (price, stock, version)
+
+    loop Kiểm tra từng món trong giỏ hàng
+        alt Tồn kho không đủ (product.stock < item.qty)
+            OrdersSvc-->>Controller: Ném lỗi ConflictException (HTTP 409)
+            Controller-->>FE: 409 Conflict ("Sản phẩm không đủ số lượng tồn kho")
+            FE-->>Customer: Hiển thị thông báo món đã hết hàng
+        else Đủ tồn kho
+            OrdersSvc->>OrdersSvc: Tính đơn giá chuẩn = calculateItemUnitPrice(price, size, toppings)
+            OrdersSvc->>OrdersSvc: Ghi nhận item kèm curVersion = product.version
+        end
+    end
+
+    Note over OrdersSvc,VouchersSvc: Bước 2: Thẩm định mã giảm giá (Voucher Validation)
+    opt Khách có nhập voucherCode
+        OrdersSvc->>VouchersSvc: validateVoucher(voucherCode, subtotal)
+        alt Voucher không hợp lệ hoặc không đủ điều kiện minOrder
+            VouchersSvc-->>OrdersSvc: Ném BadRequestException (HTTP 400)
+            OrdersSvc-->>Controller: Ném lỗi BadRequestException (HTTP 400)
+            Controller-->>FE: 400 Bad Request ("Voucher không đủ điều kiện")
+            FE-->>Customer: Hiển thị lỗi voucher không hợp lệ
+        else Voucher hợp lệ
+            VouchersSvc-->>OrdersSvc: Trả về discountAmount hợp lệ
+        end
+    end
+
+    OrdersSvc->>OrdersSvc: Tính total = Math.max(0, subtotal - discountAmount)
+
+    Note over OrdersSvc,DB: Bước 3: Mở Database Transaction với Optimistic Locking
+    OrdersSvc->>DB: prisma.$transaction(async (tx) => { ... })
+    
+    loop Duyệt từng item để trừ kho có điều kiện (Optimistic Lock)
+        OrdersSvc->>DB: UPDATE products SET stock = stock - qty, version = version + 1
+        Note over OrdersSvc,DB: Điều kiện: id = item.productId, version = curVersion, stock >= qty
+        DB-->>OrdersSvc: Trả về { count: N }
+
+        alt updateResult.count == 0 (Race Condition - Version bị sửa đổi bởi đơn khác)
+            OrdersSvc-->>DB: ROLLBACK TRANSACTION!
+            OrdersSvc-->>Controller: Ném lỗi ConflictException (HTTP 409)
+            Controller-->>FE: 409 Conflict ("Sản phẩm đã thay đổi tồn kho. Vui lòng thử lại")
+            FE-->>Customer: Báo xung đột kho, tải lại giỏ hàng
+        end
+    end
+
+    Note over OrdersSvc,DB: Bước 4: Tạo mã đơn và lưu đơn PENDING
+    OrdersSvc->>DB: tx.order.count()
+    DB-->>OrdersSvc: Trả về tổng orderCount hiện có
+    OrdersSvc->>OrdersSvc: Sinh code = "#" + (1001 + orderCount)<br>Thiết lập expiresAt = now() + 15 phút
+    OrdersSvc->>DB: tx.order.create({ data: { code, status: 'PENDING', total, expiresAt, items: { create: [...] } } })
+    DB-->>OrdersSvc: Bản ghi Order mới hoàn chỉnh
+    OrdersSvc->>DB: COMMIT TRANSACTION!
+
+    OrdersSvc-->>Controller: Trả về thực thể newOrder
+    Controller-->>FE: HTTP 201 Created (Order Object)
+    FE-->>Customer: Chuyển hướng tới trang /orders/[id] (Bắt đầu đếm ngược 14:59)

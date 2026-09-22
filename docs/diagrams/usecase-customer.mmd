@@ -1,0 +1,68 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef baseUC fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef subUC fill:#fef3c7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+    classDef dangerUC fill:#fee2e2,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+    classDef successUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
+
+    %% TÁC NHÂN CHÍNH
+    CUST["👤 Khách hàng<br>(Customer)"]:::actorNode
+
+    %% CÁC USE CASE CỐT LÕI
+    subgraph UC_CUSTOMER ["PHÂN HỆ CHỨC NĂNG DÀNH CHO KHÁCH HÀNG"]
+        direction TB
+
+        subgraph G_ACCOUNT ["1. Quản lý Tài khoản"]
+            UC_AUTH(["Đăng ký & Đăng nhập"]):::baseUC
+            UC_PROFILE(["Xem hồ sơ & Điểm Loyalty"]):::baseUC
+        end
+
+        subgraph G_ORDER ["2. Đặt hàng & Thực đơn"]
+            UC_BROWSE(["Xem menu & Tùy biến món"]):::baseUC
+            UC_CART(["Quản lý giỏ hàng"]):::baseUC
+            UC_PLACE_ORDER(["Khởi tạo đơn hàng"]):::baseUC
+            UC_VOUCHER(["Áp dụng mã Voucher"]):::subUC
+            UC_OPT_LOCK(["Trừ kho Optimistic Locking"]):::subUC
+            UC_CANCEL_MY(["Hủy đơn hàng của tôi"]):::baseUC
+        end
+
+        subgraph G_PAYMENT ["3. Thanh toán & Tích điểm"]
+            UC_PAY(["Thanh toán không tiền mặt"]):::baseUC
+            UC_IDEMPOTENT(["Kiểm tra Idempotency-Key"]):::subUC
+            UC_LOYALTY(["Cộng điểm thưởng Loyalty"]):::successUC
+            UC_PAY_FAIL(["Xử lý lỗi & Tự động hoàn kho"]):::dangerUC
+        end
+    end
+
+    %% TƯƠNG TÁC TÁC NHÂN -> USE CASE
+    CUST --> UC_AUTH
+    CUST --> UC_PROFILE
+    CUST --> UC_BROWSE
+    CUST --> UC_CART
+    CUST --> UC_PLACE_ORDER
+    CUST --> UC_CANCEL_MY
+    CUST --> UC_PAY
+
+    %% QUAN HỆ INCLUDE & EXTEND (Chuẩn UML 2.5)
+    UC_PLACE_ORDER -.->|"«include»"| UC_OPT_LOCK
+    UC_VOUCHER -.->|"«extend»"| UC_PLACE_ORDER
+
+    UC_PAY -.->|"«include»"| UC_IDEMPOTENT
+    UC_PAY -.->|"«include»"| UC_LOYALTY
+    UC_PAY_FAIL -.->|"«extend»"| UC_PAY

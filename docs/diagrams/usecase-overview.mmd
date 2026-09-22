@@ -1,0 +1,55 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'edgeLabelBackground':'#ffffff',
+    'clusterBkg':'#f8fafc',
+    'clusterBorder':'#64748b',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+flowchart LR
+    %% Định nghĩa các lớp màu sắc High-Contrast chữ đen
+    classDef actorNode fill:#ffffff,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:700;
+    classDef pkgNode fill:#fef3c7,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+    classDef adminPkg fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
+
+    %% 4 TÁC NHÂN (ACTORS)
+    subgraph ACTORS ["CÁC TÁC NHÂN HỆ THỐNG (ACTORS)"]
+        direction TB
+        ACT_CUSTOMER["👤 Khách hàng<br>(Customer)"]:::actorNode
+        ACT_STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / Barista)"]:::actorNode
+        ACT_ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+        ACT_CRON["⏱️ Hệ thống Tự động<br>(System Cron Daemon)"]:::actorNode
+    end
+
+    %% Kế thừa vai trò
+    ACT_ADMIN -.->|"«generalizes»<br>Kế thừa quyền quầy"| ACT_STAFF
+
+    %% 5 PHÂN HỆ USE CASE CHÍNH (SYSTEM PACKAGES)
+    subgraph PACKAGES ["CÁC PHÂN HỆ USE CASE CỐT LÕI (SYSTEM PACKAGES)"]
+        direction TB
+        PKG_AUTH["🔐 [PKG-01] Phân hệ Xác thực & Hồ sơ<br>• Đăng ký / Đăng nhập JWT<br>• Tra cứu hồ sơ & Điểm tích lũy"]:::pkgNode
+        PKG_ORDER["☕ [PKG-02] Phân hệ Thực đơn & Đặt đồ uống<br>• Tra cứu Menu, Chọn Size / Toppings<br>• Quản trị giỏ hàng, Đặt đơn PENDING<br>• Trừ kho Optimistic Locking, Hủy đơn"]:::pkgNode
+        PKG_PAYMENT["💳 [PKG-03] Phân hệ Thanh toán & Điểm thưởng<br>• Áp dụng mã khuyến mãi Voucher<br>• Thanh toán Idempotent (Ví/Thẻ)<br>• Phòng thủ P2002, Tự động cộng Loyalty"]:::pkgNode
+        PKG_KDS["📋 [PKG-04] Phân hệ Pha chế & Quầy (KDS)<br>• Hàng đợi đơn hàng FIFO thời gian thực<br>• Chuyển trạng thái PAID ➔ PREPARING ➔ READY<br>• Bàn giao COMPLETED, Hủy sự cố tại quầy"]:::pkgNode
+        PKG_ADMIN["⚙️ [PKG-05] Phân hệ Quản trị & Tự động hóa<br>• Quản lý giá món, công thức, tồn kho<br>• Phân quyền RBAC, kiểm toán hệ thống<br>• Cron Job dọn dẹp đơn quá hạn 15 phút<br>• Cơ chế Lazy-Check Timeout khi xem đơn"]:::adminPkg
+    end
+
+    %% KẾT NỐI TÁC NHÂN TỚI PHÂN HỆ
+    ACT_CUSTOMER ==>|"Tương tác"| PKG_AUTH
+    ACT_CUSTOMER ==>|"Tương tác"| PKG_ORDER
+    ACT_CUSTOMER ==>|"Tương tác"| PKG_PAYMENT
+
+    ACT_STAFF ==>|"Vận hành"| PKG_KDS
+
+    ACT_ADMIN ==>|"Toàn quyền"| PKG_ADMIN
+    ACT_ADMIN -.->|"Can thiệp trực tiếp"| PKG_KDS
+    ACT_ADMIN -.->|"Quản trị dữ liệu"| PKG_ORDER
+
+    ACT_CRON ==>|"Tự động kích hoạt"| PKG_ADMIN
