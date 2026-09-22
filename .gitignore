@@ -33,3 +33,7 @@ Thumbs.db
 # Coverage & Tests
 coverage/
 .nyc_output/
+
+# TypeScript build info
+*.tsbuildinfo
+apps/**/package-lock.json
