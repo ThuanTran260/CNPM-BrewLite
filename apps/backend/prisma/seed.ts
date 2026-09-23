@@ -8,8 +8,20 @@ async function main() {
 
   // 1. Seed tài khoản người dùng
   const salt = await bcrypt.genSalt(10);
+  const adminPasswordHash = await bcrypt.hash('Admin123!', salt);
   const staffPasswordHash = await bcrypt.hash('Staff123!', salt);
   const customerPasswordHash = await bcrypt.hash('Customer123!', salt);
+
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@brewlite.vn' },
+    update: {},
+    create: {
+      email: 'admin@brewlite.vn',
+      passwordHash: adminPasswordHash,
+      role: Role.ADMIN,
+      loyaltyPoints: 0,
+    },
+  });
 
   const staff = await prisma.user.upsert({
     where: { email: 'staff@brewlite.vn' },
@@ -24,16 +36,18 @@ async function main() {
 
   const customer = await prisma.user.upsert({
     where: { email: 'customer@brewlite.vn' },
-    update: {},
+    update: { loyaltyPoints: 50 },
     create: {
       email: 'customer@brewlite.vn',
       passwordHash: customerPasswordHash,
       role: Role.CUSTOMER,
-      loyaltyPoints: 5,
+      loyaltyPoints: 50,
     },
   });
 
-  console.log(`✅ Đã tạo tài khoản: Staff (${staff.email}), Customer (${customer.email})`);
+  console.log(
+    `✅ Đã tạo tài khoản: Admin (${admin.email}), Staff (${staff.email}), Customer (${customer.email})`,
+  );
 
   // 2. Seed sản phẩm đồ uống (Menu phong cách Starbucks)
   const products = [
