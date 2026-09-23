@@ -1,37 +1,85 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Coffee, Lock, Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
+import {
+  Coffee,
+  Lock,
+  Mail,
+  ArrowRight,
+  AlertCircle,
+  ShieldCheck,
+  User,
+  Sparkles,
+  CheckCircle2,
+  Eye,
+  EyeOff,
+} from 'lucide-react';
 import { authApi } from '../../services/api';
+
+interface DemoAccount {
+  role: string;
+  badge: string;
+  email: string;
+  pass: string;
+  icon: React.ComponentType<{ className?: string }>;
+  iconStyle: string;
+  badgeStyle: string;
+}
+
+const DEMO_ACCOUNTS: DemoAccount[] = [
+  {
+    role: 'Khách hàng',
+    badge: 'Customer',
+    email: 'customer@brewlite.vn',
+    pass: 'Customer123!',
+    icon: User,
+    iconStyle: 'bg-emerald-100/80 text-emerald-800',
+    badgeStyle: 'bg-emerald-50 text-emerald-800 border-emerald-200/70',
+  },
+  {
+    role: 'Nhân viên pha chế',
+    badge: 'Staff',
+    email: 'staff@brewlite.vn',
+    pass: 'Staff123!',
+    icon: Coffee,
+    iconStyle: 'bg-amber-100/80 text-amber-800',
+    badgeStyle: 'bg-amber-50 text-amber-800 border-amber-200/70',
+  },
+  {
+    role: 'Quản trị viên',
+    badge: 'Admin',
+    email: 'admin@brewlite.vn',
+    pass: 'Admin123!',
+    icon: ShieldCheck,
+    iconStyle: 'bg-house/10 text-house',
+    badgeStyle: 'bg-house/5 text-house border-house/20',
+  },
+];
 
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  // Khối tài khoản mẫu: hiện ở dev, hoặc ở prod khi mở /login?demo=1 (chỉ để
-  // test nhanh; nút này chỉ điền sẵn form dùng chung luồng handleSubmit).
-  const [showDemo, setShowDemo] = useState(false);
 
-  useEffect(() => {
-    if (
-      process.env.NODE_ENV !== 'production' ||
-      new URLSearchParams(window.location.search).get('demo') === '1'
-    ) {
-      setShowDemo(true);
+  const executeLogin = async (loginEmail?: string, loginPassword?: string) => {
+    const targetEmail = (loginEmail ?? email).trim();
+    const targetPassword = loginPassword ?? password;
+
+    if (!targetEmail || !targetPassword) {
+      setError('Vui lòng nhập đầy đủ email và mật khẩu.');
+      return;
     }
-  }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setError(null);
     setLoading(true);
 
     try {
-      const data = await authApi.login({ email: email.trim(), password });
+      const data = await authApi.login({ email: targetEmail, password: targetPassword });
       localStorage.setItem('brewlite_token', data.accessToken);
       localStorage.setItem('brewlite_user_email', data.user.email);
       localStorage.setItem('brewlite_user_role', data.user.role);
@@ -61,10 +109,29 @@ export default function LoginPage() {
     }
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await executeLogin();
+  };
+
   const fillQuickAccount = (quickEmail: string, quickPass: string) => {
     setEmail(quickEmail);
     setPassword(quickPass);
     setError(null);
+  };
+
+  const handleQuickAccountClick = (quickEmail: string, quickPass: string) => {
+    if (loading) return;
+    const isCurrentlySelected =
+      email.trim().toLowerCase() === quickEmail.toLowerCase() && password === quickPass;
+
+    if (isCurrentlySelected) {
+      // Nếu tài khoản này đã được điền sẵn trong form, bấm thêm 1 lần sẽ tiến hành đăng nhập trực tiếp
+      executeLogin(quickEmail, quickPass);
+    } else {
+      // Lần bấm đầu: Điền nhanh thông tin vào form để người dùng thấy rõ dữ liệu
+      fillQuickAccount(quickEmail, quickPass);
+    }
   };
 
   return (
@@ -106,6 +173,7 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
+                  disabled={loading}
                   name="email"
                   autoComplete="username"
                   autoCapitalize="none"
@@ -114,7 +182,7 @@ export default function LoginPage() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
-                  className="block w-full pl-10 pr-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                  className="block w-full pl-10 pr-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent disabled:opacity-60 disabled:cursor-not-allowed"
                 />
               </div>
             </div>
@@ -128,15 +196,24 @@ export default function LoginPage() {
                   <Lock className="w-4 h-4" />
                 </div>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   required
+                  disabled={loading}
                   name="password"
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
-                  className="block w-full pl-10 pr-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                  className="block w-full pl-10 pr-10 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent disabled:opacity-60 disabled:cursor-not-allowed"
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
+                  className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-ink-muted hover:text-house focus:outline-none transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
               </div>
             </div>
 
@@ -156,39 +233,95 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Accounts Helper — chỉ hiện ở dev, hoặc prod khi có ?demo=1.
-              Chỉ điền sẵn vào form, KHÔNG tự submit; dùng chung luồng
-              handleSubmit hiện có. */}
-          {showDemo && (
-            <div className="mt-6 pt-6 border-t border-ceramic">
-              <span className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2.5 text-center">
-                Tài khoản mẫu để test nhanh:
+          {/* Quick Demo Accounts Helper — Hiển thị trực tiếp trên giao diện để điền nhanh */}
+          <div className="mt-6 pt-6 border-t border-ceramic" role="region" aria-label="Tài khoản demo trải nghiệm">
+            <div className="flex items-center justify-between mb-3">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-house uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                Tài khoản demo trải nghiệm
               </span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => fillQuickAccount('customer@brewlite.vn', 'Customer123!')}
-                  className="btn-pill py-2 px-2.5 bg-canvas hover:bg-ceramic text-[11px] font-medium text-house border border-ceramic text-center"
-                >
-                  Khách hàng mẫu
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickAccount('staff@brewlite.vn', 'Staff123!')}
-                  className="btn-pill py-2 px-2.5 bg-gold/10 hover:bg-gold/20 text-[11px] font-bold text-house border border-gold/40 text-center"
-                >
-                  Barista (Staff)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => fillQuickAccount('admin@brewlite.vn', 'Admin123!')}
-                  className="btn-pill col-span-2 py-2 px-2.5 bg-house/5 hover:bg-house/10 text-[11px] font-bold text-house border border-house/20 text-center"
-                >
-                  Quản trị viên (Admin)
-                </button>
-              </div>
+              <span className="text-[11px] text-ink-muted">
+                Bấm để điền • Bấm tiếp để vào
+              </span>
             </div>
-          )}
+
+            <div className="space-y-2.5">
+              {DEMO_ACCOUNTS.map((acc) => {
+                const isSelected =
+                  email.trim().toLowerCase() === acc.email.toLowerCase() && password === acc.pass;
+                const Icon = acc.icon;
+                return (
+                  <button
+                    key={acc.email}
+                    type="button"
+                    disabled={loading}
+                    onClick={() => handleQuickAccountClick(acc.email, acc.pass)}
+                    aria-pressed={isSelected}
+                    aria-label={
+                      isSelected
+                        ? `Đã điền tài khoản ${acc.role}. Bấm lần nữa để đăng nhập ngay.`
+                        : `Điền nhanh thông tin tài khoản demo ${acc.role}`
+                    }
+                    title={
+                      isSelected
+                        ? 'Bấm lần nữa để đăng nhập ngay'
+                        : 'Bấm để điền thông tin tài khoản'
+                    }
+                    className={`group w-full p-2.5 sm:p-3 rounded-2xl border text-left flex items-center justify-between transition-all duration-150 active:scale-[0.99] focus:outline-none focus-visible:ring-2 focus-visible:ring-primary-accent disabled:opacity-50 disabled:cursor-not-allowed ${
+                      isSelected
+                        ? 'border-primary-accent bg-primary-light/25 ring-1 ring-primary-accent/40 shadow-sm'
+                        : 'border-ceramic bg-canvas/30 hover:bg-canvas/70 hover:border-ceramic/90'
+                    }`}
+                  >
+                    <div className="flex items-center space-x-3 min-w-0 flex-1">
+                      <div
+                        className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 transition-colors ${
+                          isSelected ? 'bg-primary-accent text-white shadow-sm' : acc.iconStyle
+                        }`}
+                      >
+                        <Icon className="w-4 h-4" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center space-x-1.5 flex-wrap">
+                          <span className="text-xs font-bold text-house tracking-tight">
+                            {acc.role}
+                          </span>
+                          <span
+                            className={`text-[10px] font-semibold px-1.5 py-0.5 rounded-full border ${acc.badgeStyle}`}
+                          >
+                            {acc.badge}
+                          </span>
+                        </div>
+                        <div className="text-[11px] text-ink-muted font-mono mt-0.5 flex items-center gap-1.5">
+                          <span className="truncate max-w-[140px] sm:max-w-none">{acc.email}</span>
+                          <span className="text-ink-muted/40 shrink-0">•</span>
+                          <span className="text-ink-muted/70 shrink-0 font-sans text-[10px] sm:text-[11px]">
+                            {acc.pass}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0 ml-2">
+                      {isSelected ? (
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-primary-accent bg-white/95 px-2.5 py-1 rounded-full border border-primary-accent/30 shadow-xs">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-primary-accent shrink-0" />
+                          <span>Đã điền</span>
+                          <span className="hidden sm:inline-flex items-center text-[10px] font-semibold text-primary-accent/80 border-l border-primary-accent/30 pl-1.5 ml-0.5">
+                            Vào <ArrowRight className="w-2.5 h-2.5 ml-0.5" />
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center text-[11px] font-medium text-ink-muted group-hover:text-primary-accent group-hover:translate-x-0.5 transition-all">
+                          Điền <ArrowRight className="w-3 h-3 ml-0.5" />
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </div>
     </div>
