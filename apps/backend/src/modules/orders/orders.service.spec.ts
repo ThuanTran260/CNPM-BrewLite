@@ -138,4 +138,82 @@ describe('OrdersService', () => {
       });
     });
   });
+
+  describe('createOrder (owner lock mã RW-)', () => {
+    const product = {
+      id: 'prod-1',
+      name: 'Cà phê',
+      price: 60000,
+      stock: 10,
+      version: 0,
+    };
+
+    it('nên chặn mã RW- của người khác trước khi validate', async () => {
+      prisma.product.findMany.mockResolvedValueOnce([product]);
+
+      await expect(
+        service.createOrder('user-1', {
+          items: [{ productId: 'prod-1', size: Size.M, toppings: [], qty: 1 }],
+          voucherCode: 'RW-ABCD-WXYZ',
+        }),
+      ).rejects.toThrow('Mã đổi thưởng này không thuộc về tài khoản của bạn');
+      expect(vouchersService.validateVoucher).not.toHaveBeenCalled();
+    });
+
+    it('nên cho qua mã RW- của chính chủ và truyền userId cho validate', async () => {
+      prisma.product.findMany.mockResolvedValueOnce([product]);
+      vouchersService.validateVoucher.mockResolvedValueOnce({
+        valid: true,
+        voucher: { code: 'RW-USER-AAAA' },
+        discountAmount: 20000,
+      });
+      prisma.product.updateMany = jest.fn().mockResolvedValueOnce({ count: 1 });
+      prisma.order.create.mockResolvedValueOnce({
+        id: 'order-1',
+        code: '#1042',
+        status: OrderStatus.PENDING,
+        total: 40000,
+      });
+
+      const result = await service.createOrder('user-1', {
+        items: [{ productId: 'prod-1', size: Size.M, toppings: [], qty: 1 }],
+        voucherCode: 'RW-USER-AAAA',
+      });
+
+      expect(vouchersService.validateVoucher).toHaveBeenCalledWith(
+        'RW-USER-AAAA',
+        expect.any(Number),
+        'user-1',
+      );
+      expect(result.code).toBe('#1042');
+    });
+
+    it('nên cho qua mã dùng chung (WELCOME10) không cần prefix', async () => {
+      prisma.product.findMany.mockResolvedValueOnce([product]);
+      vouchersService.validateVoucher.mockResolvedValueOnce({
+        valid: true,
+        voucher: { code: 'WELCOME10' },
+        discountAmount: 6000,
+      });
+      prisma.product.updateMany = jest.fn().mockResolvedValueOnce({ count: 1 });
+      prisma.order.create.mockResolvedValueOnce({
+        id: 'order-1',
+        code: '#1042',
+        status: OrderStatus.PENDING,
+        total: 54000,
+      });
+
+      const result = await service.createOrder('user-1', {
+        items: [{ productId: 'prod-1', size: Size.M, toppings: [], qty: 1 }],
+        voucherCode: 'WELCOME10',
+      });
+
+      expect(vouchersService.validateVoucher).toHaveBeenCalledWith(
+        'WELCOME10',
+        expect.any(Number),
+        'user-1',
+      );
+      expect(result.code).toBe('#1042');
+    });
+  });
 });

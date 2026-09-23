@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { OrderStatus, Role } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { VouchersService } from '../vouchers/vouchers.service';
+import { VouchersService, toShortId, OWNER_MISMATCH_MESSAGE } from '../vouchers/vouchers.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { calculateItemUnitPrice } from '../../common/constants/drink-options';
 import { assertTransition } from '../../common/state-machine/order-state-machine';
@@ -81,9 +81,19 @@ export class OrdersService {
     let appliedVoucherCode: string | null = null;
 
     if (dto.voucherCode) {
+      // Khóa owner: mã đổi thưởng RW- chỉ chủ sở hữu mới được dùng,
+      // chặn trước khi validate/use. Mã dùng chung (WELCOME10...) không ảnh hưởng.
+      const normalizedCode = dto.voucherCode.toUpperCase().trim();
+      if (
+        normalizedCode.startsWith('RW-') &&
+        !normalizedCode.startsWith(`RW-${toShortId(userId)}-`)
+      ) {
+        throw new BadRequestException(OWNER_MISMATCH_MESSAGE);
+      }
       const voucherResult = await this.vouchersService.validateVoucher(
         dto.voucherCode,
         subtotal,
+        userId,
       );
       discountAmount = voucherResult.discountAmount;
       appliedVoucherCode = voucherResult.voucher.code;
