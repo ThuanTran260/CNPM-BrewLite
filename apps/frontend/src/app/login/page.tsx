@@ -24,8 +24,18 @@ export default function LoginPage() {
       localStorage.setItem('brewlite_user_email', data.user.email);
       localStorage.setItem('brewlite_user_role', data.user.role);
 
-      // Nếu là STAFF thì chuyển sang quầy Barista
-      if (data.user.role === 'STAFF' || data.user.role === 'ADMIN') {
+      // Ưu tiên quay lại trang đã yêu cầu (?redirect=...), nếu không thì
+      // điều hướng theo vai trò: ADMIN -> /admin, STAFF -> /staff, còn lại -> /
+      const params = new URLSearchParams(window.location.search);
+      const redirect = params.get('redirect');
+      const safeRedirect =
+        redirect && redirect.startsWith('/') && !redirect.startsWith('//') ? redirect : null;
+
+      if (safeRedirect) {
+        router.push(safeRedirect);
+      } else if (data.user.role === 'ADMIN') {
+        router.push('/admin');
+      } else if (data.user.role === 'STAFF') {
         router.push('/staff');
       } else {
         router.push('/');
