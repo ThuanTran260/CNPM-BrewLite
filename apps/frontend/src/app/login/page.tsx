@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Coffee, Lock, Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
@@ -12,6 +12,18 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Khối tài khoản mẫu: hiện ở dev, hoặc ở prod khi mở /login?demo=1 (chỉ để
+  // test nhanh; nút này chỉ điền sẵn form dùng chung luồng handleSubmit).
+  const [showDemo, setShowDemo] = useState(false);
+
+  useEffect(() => {
+    if (
+      process.env.NODE_ENV !== 'production' ||
+      new URLSearchParams(window.location.search).get('demo') === '1'
+    ) {
+      setShowDemo(true);
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -137,11 +149,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Accounts Helper — chỉ hiện ở môi trường dev (Next.js thay
-              process.env.NODE_ENV bằng hằng số lúc build nên nhánh này bị loại
-              khỏi bundle production). Chỉ điền sẵn vào form, KHÔNG tự submit;
-              dùng chung luồng handleSubmit hiện có. */}
-          {process.env.NODE_ENV !== 'production' && (
+          {/* Quick Demo Accounts Helper — chỉ hiện ở dev, hoặc prod khi có ?demo=1.
+              Chỉ điền sẵn vào form, KHÔNG tự submit; dùng chung luồng
+              handleSubmit hiện có. */}
+          {showDemo && (
             <div className="mt-6 pt-6 border-t border-ceramic">
               <span className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2.5 text-center">
                 Tài khoản mẫu để test nhanh:
