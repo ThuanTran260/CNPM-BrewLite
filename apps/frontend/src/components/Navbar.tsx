@@ -8,6 +8,7 @@ import { useCartStore } from '../store/useCartStore';
 export default function Navbar() {
   const [mounted, setMounted] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<string | null>(null);
   const items = useCartStore((state) => state.items);
   const totalItems = useCartStore((state) => state.getTotalItems());
 
@@ -15,6 +16,7 @@ export default function Navbar() {
     setMounted(true);
     const email = localStorage.getItem('brewlite_user_email');
     setUserEmail(email);
+    setUserRole(localStorage.getItem('brewlite_user_role'));
   }, []);
 
   const handleLogout = () => {
@@ -22,6 +24,7 @@ export default function Navbar() {
     localStorage.removeItem('brewlite_user_email');
     localStorage.removeItem('brewlite_user_role');
     setUserEmail(null);
+    setUserRole(null);
     window.location.reload();
   };
 
@@ -50,6 +53,14 @@ export default function Navbar() {
           >
             Lịch sử đơn
           </Link>
+          {mounted && userRole === 'ADMIN' && (
+            <Link
+              href="/admin"
+              className="text-white/80 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
+            >
+              [Quản trị]
+            </Link>
+          )}
         </nav>
 
         {/* Actions (Cart & High-End Account Profile) */}
@@ -73,20 +84,26 @@ export default function Navbar() {
             <div className="w-28 h-8 rounded-full bg-white/10 animate-pulse" aria-hidden="true" />
           ) : userEmail ? (
             <div className="flex items-center space-x-2 bg-white/10 hover:bg-white/[0.14] border border-white/15 rounded-full py-1 pl-1.5 pr-2.5 transition-all duration-300 shadow-sm backdrop-blur-sm">
-              {/* Nested Avatar Circle */}
-              <div className="w-7 h-7 rounded-full bg-primary-accent border border-white/20 flex items-center justify-center text-white text-xs font-bold uppercase shadow-inner select-none">
-                {userEmail.charAt(0).toUpperCase()}
-              </div>
+              {/* Nested Avatar Circle + Email (link tới hồ sơ) */}
+              <Link
+                href="/profile"
+                className="flex items-center space-x-2 min-w-0"
+                aria-label="Xem hồ sơ"
+              >
+                <div className="w-7 h-7 rounded-full bg-primary-accent border border-white/20 flex items-center justify-center text-white text-xs font-bold uppercase shadow-inner select-none">
+                  {userEmail.charAt(0).toUpperCase()}
+                </div>
 
-              {/* Email & Tier Details */}
-              <div className="flex flex-col text-left leading-tight max-w-[110px] sm:max-w-[140px]">
-                <span className="text-xs font-semibold text-white truncate" title={userEmail}>
-                  {userEmail}
-                </span>
-                <span className="text-[9px] text-primary-light font-medium tracking-wider uppercase">
-                  Thành viên
-                </span>
-              </div>
+                {/* Email & Tier Details */}
+                <div className="flex flex-col text-left leading-tight max-w-[110px] sm:max-w-[140px]">
+                  <span className="text-xs font-semibold text-white truncate" title={userEmail}>
+                    {userEmail}
+                  </span>
+                  <span className="text-[9px] text-primary-light font-medium tracking-wider uppercase">
+                    Thành viên
+                  </span>
+                </div>
+              </Link>
 
               {/* Trailing Logout Button */}
               <button

@@ -127,28 +127,40 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Quick Demo Accounts Helper */}
-          <div className="mt-6 pt-6 border-t border-ceramic">
-            <span className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2.5 text-center">
-              Tài khoản mẫu để test nhanh:
-            </span>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('customer@brewlite.vn', 'Customer123!')}
-                className="btn-pill py-2 px-2.5 bg-canvas hover:bg-ceramic text-[11px] font-medium text-house border border-ceramic text-center"
-              >
-                Khách hàng mẫu
-              </button>
-              <button
-                type="button"
-                onClick={() => fillQuickAccount('staff@brewlite.vn', 'Staff123!')}
-                className="btn-pill py-2 px-2.5 bg-gold/10 hover:bg-gold/20 text-[11px] font-bold text-house border border-gold/40 text-center"
-              >
-                Barista (Staff)
-              </button>
+          {/* Quick Demo Accounts Helper — chỉ hiện ở môi trường dev (Next.js thay
+              process.env.NODE_ENV bằng hằng số lúc build nên nhánh này bị loại
+              khỏi bundle production). Chỉ điền sẵn vào form, KHÔNG tự submit;
+              dùng chung luồng handleSubmit hiện có. */}
+          {process.env.NODE_ENV !== 'production' && (
+            <div className="mt-6 pt-6 border-t border-ceramic">
+              <span className="block text-[11px] font-bold text-ink-muted uppercase tracking-wider mb-2.5 text-center">
+                Tài khoản mẫu để test nhanh:
+              </span>
+              <div className="grid grid-cols-2 gap-2">
+                <button
+                  type="button"
+                  onClick={() => fillQuickAccount('customer@brewlite.vn', 'Customer123!')}
+                  className="btn-pill py-2 px-2.5 bg-canvas hover:bg-ceramic text-[11px] font-medium text-house border border-ceramic text-center"
+                >
+                  Khách hàng mẫu
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillQuickAccount('staff@brewlite.vn', 'Staff123!')}
+                  className="btn-pill py-2 px-2.5 bg-gold/10 hover:bg-gold/20 text-[11px] font-bold text-house border border-gold/40 text-center"
+                >
+                  Barista (Staff)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => fillQuickAccount('admin@brewlite.vn', 'Admin123!')}
+                  className="btn-pill col-span-2 py-2 px-2.5 bg-house/5 hover:bg-house/10 text-[11px] font-bold text-house border border-house/20 text-center"
+                >
+                  Quản trị viên (Admin)
+                </button>
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>
