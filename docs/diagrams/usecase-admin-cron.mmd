@@ -21,23 +21,23 @@ flowchart LR
     classDef subUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
 
     %% TÁC NHÂN
-    ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
-    CRON["⏱️ Hệ thống Tự động<br>(System Cron Daemon)"]:::actorNode
+    ADMIN["👨‍💼 Quản trị viên"]:::actorNode
+    CRON["⏱️ Bộ xử lý tự động định kỳ"]:::actorNode
 
     %% PHÂN HỆ QUẢN TRỊ & TỰ ĐỘNG HÓA
     subgraph UC_ADMIN_CRON ["PHÂN HỆ QUẢN TRỊ VẬN HÀNH & TỰ ĐỘNG HÓA"]
         direction TB
 
         subgraph G_ADMIN ["Nghiệp vụ Quản trị Cửa hàng"]
-            UC_MENU(["Cấu hình menu, giá & tồn kho món"]):::adminUC
-            UC_RBAC(["Quản lý tài khoản & Phân quyền RBAC"]):::adminUC
-            UC_AUDIT(["Giám sát toàn diện & Can thiệp KDS"]):::adminUC
+            UC_MENU(["Cấu hình menu, giá bán & số lượng tồn kho"]):::adminUC
+            UC_RBAC(["Quản lý tài khoản & Phân quyền người dùng"]):::adminUC
+            UC_AUDIT(["Giám sát hoạt động & Can thiệp quầy bar"]):::adminUC
         end
 
-        subgraph G_CRON ["Nghiệp vụ Tự động hóa & Timeout (ADR-007)"]
-            UC_CRON_JOB(["Dọn dẹp đơn quá hạn 15 phút<br>(Cron Job chạy 5 phút/lần)"]):::cronUC
-            UC_LAZY_TIMEOUT(["Cơ chế Lazy-Check Timeout<br>(Kích hoạt khi tra cứu đơn GET)"]):::cronUC
-            UC_AUTO_RESTOCK(["Tự động thu hồi & Hoàn trả tồn kho<br>(Atomic Transaction)"]):::subUC
+        subgraph G_CRON ["Nghiệp vụ Tự động hóa & Xử lý Quá hạn"]
+            UC_CRON_JOB(["Tự động hủy đơn quá hạn 15 phút<br>(Chạy ngầm định kỳ mỗi 5 phút)"]):::cronUC
+            UC_LAZY_TIMEOUT(["Kiểm tra & Thu hồi đơn quá hạn<br>(Kích hoạt khi người dùng tra cứu đơn)"]):::cronUC
+            UC_AUTO_RESTOCK(["Tự động thu hồi & Hoàn trả số lượng kho"]):::subUC
         end
     end
 

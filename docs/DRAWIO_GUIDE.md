@@ -1,7 +1,7 @@
 # HƯỚNG DẪN SỬ DỤNG VÀ NHẬP MÃ BIỂU ĐỒ MERMAID VÀO DRAW.IO
 ## (Comprehensive Draw.io Integration & Diagram Customization Guide)
 
-Tài liệu này cung cấp hướng dẫn chi tiết cách sử dụng các tệp mã nguồn Mermaid (`.mmd`) và tệp ảnh vector (`.svg`) trong thư mục `docs/diagrams/` để xem phóng to không giới hạn hoặc nhập trực tiếp vào **Draw.io (diagrams.net)** nhằm chỉnh sửa, biên tập và xuất báo cáo học thuật chất lượng cao.
+Tài liệu này cung cấp hướng dẫn chi tiết cách sử dụng các tệp mã nguồn Mermaid (`.mmd`) trong thư mục `docs/diagrams/` để nhập trực tiếp vào **Draw.io (diagrams.net)** nhằm chỉnh sửa, biên tập và xuất báo cáo học thuật chất lượng cao.
 
 ---
 
@@ -9,28 +9,26 @@ Tài liệu này cung cấp hướng dẫn chi tiết cách sử dụng các t�
 
 Tất cả các biểu đồ đều đã được chuẩn hóa **chữ đen tuyền (`#000000`)**, nền pastel tương phản cao, viền đậm 2px, tối ưu hoàn hảo cho cả Light Mode, Dark Mode và in ấn trắng đen:
 
-| STT | Tên biểu đồ | Mô tả phân hệ | Mã nguồn Mermaid (.mmd) | Ảnh Vector SVG siêu nét |
-|:---:|---|---|:---:|:---:|
-| **1** | **BFD** | Sơ đồ phân rã chức năng kinh doanh (Business Functions) | [bfd.mmd](./diagrams/bfd.mmd) | [bfd.svg](./diagrams/svg/bfd.svg) |
-| **2** | **DFD Lv0** | Sơ đồ luồng dữ liệu mức ngữ cảnh hệ thống BrewLite | [dfd-lv0.mmd](./diagrams/dfd-lv0.mmd) | [dfd-lv0.svg](./diagrams/svg/dfd-lv0.svg) |
-| **3** | **DFD Lv1** | Sơ đồ luồng dữ liệu mức 1 phân tầng (Anti-Spaghetti) | [dfd-lv1.mmd](./diagrams/dfd-lv1.mmd) | [dfd-lv1.svg](./diagrams/svg/dfd-lv1.svg) |
-| **4** | **Use Case Tổng quan** | Sơ đồ Use Case cấp cao (4 Actors kết nối 5 Packages) | [usecase-overview.mmd](./diagrams/usecase-overview.mmd) | [usecase-overview.svg](./diagrams/svg/usecase-overview.svg) |
-| **5** | **Use Case Khách hàng** | Phân rã chi tiết luồng nghiệp vụ Khách hàng (Customer) | [usecase-customer.mmd](./diagrams/usecase-customer.mmd) | [usecase-customer.svg](./diagrams/svg/usecase-customer.svg) |
-| **6** | **Use Case Barista** | Phân rã chi tiết luồng vận hành Quầy & KDS (Staff) | [usecase-staff.mmd](./diagrams/usecase-staff.mmd) | [usecase-staff.svg](./diagrams/svg/usecase-staff.svg) |
-| **7** | **Use Case Admin & Cron** | Phân rã chi tiết Quản trị viên & Tự động hóa dọn dẹp | [usecase-admin-cron.mmd](./diagrams/usecase-admin-cron.mmd) | [usecase-admin-cron.svg](./diagrams/svg/usecase-admin-cron.svg) |
-| **8** | **ERD** | Sơ đồ quan hệ thực thể chuẩn 100% Prisma Schema | [erd.mmd](./diagrams/erd.mmd) | [erd.svg](./diagrams/svg/erd.svg) |
-| **9** | **Sequence 1** | Luồng Đặt hàng trừ kho Optimistic Locking | [sequence-order-creation.mmd](./diagrams/sequence-order-creation.mmd) | [sequence-order-creation.svg](./diagrams/svg/sequence-order-creation.svg) |
-| **10** | **Sequence 2** | Luồng Thanh toán Idempotent Replay & Bắt lỗi P2002 | [sequence-idempotent-payment.mmd](./diagrams/sequence-idempotent-payment.mmd) | [sequence-idempotent-payment.svg](./diagrams/svg/sequence-idempotent-payment.svg) |
-| **11** | **State Machine** | Máy trạng thái vòng đời đơn hàng (ADR-007) | [order-state-machine.mmd](./diagrams/order-state-machine.mmd) | [order-state-machine.svg](./diagrams/svg/order-state-machine.svg) |
+| STT | Tên biểu đồ | Mô tả phân hệ | Mã nguồn Mermaid (.mmd) |
+|:---:|---|---|:---:|
+| **1** | **BFD** | Sơ đồ phân rã chức năng kinh doanh (Business Functions) | [bfd.mmd](./diagrams/bfd.mmd) |
+| **2** | **DFD Lv0** | Sơ đồ luồng dữ liệu mức ngữ cảnh hệ thống BrewLite | [dfd-lv0.mmd](./diagrams/dfd-lv0.mmd) |
+| **3** | **DFD Lv1** | Sơ đồ luồng dữ liệu mức 1 phân rã chi tiết | [dfd-lv1.mmd](./diagrams/dfd-lv1.mmd) |
+| **4** | **Use Case Tổng quan** | Sơ đồ Use Case cấp cao (4 Tác nhân kết nối 5 Phân hệ) | [usecase-overview.mmd](./diagrams/usecase-overview.mmd) |
+| **5** | **Use Case Khách hàng** | Phân rã chi tiết luồng nghiệp vụ Khách hàng | [usecase-customer.mmd](./diagrams/usecase-customer.mmd) |
+| **6** | **Use Case Quầy bar** | Phân rã chi tiết luồng vận hành Quầy & Pha chế | [usecase-staff.mmd](./diagrams/usecase-staff.mmd) |
+| **7** | **Use Case Admin & Tự động hóa** | Phân rã chi tiết Quản trị viên & Tự động hóa dọn dẹp | [usecase-admin-cron.mmd](./diagrams/usecase-admin-cron.mmd) |
+| **8** | **ERD** | Sơ đồ quan hệ thực thể chuẩn hóa hệ thống | [erd.mmd](./diagrams/erd.mmd) |
+| **9** | **Sequence 1** | Luồng Đăng nhập & Đặt lại mật khẩu (Chuẩn 4 tầng học thuật) | [sequence-login.mmd](./diagrams/sequence-login.mmd) |
+| **10** | **Sequence 2** | Luồng Đặt đồ uống & Kiểm tra tồn kho | [sequence-order-creation.mmd](./diagrams/sequence-order-creation.mmd) |
+| **11** | **Sequence 3** | Luồng Thanh toán không tiền mặt & Tích điểm thưởng | [sequence-idempotent-payment.mmd](./diagrams/sequence-idempotent-payment.mmd) |
+| **12** | **Sequence 4** | Luồng Tiếp nhận đơn & Cập nhật pha chế tại quầy | [sequence-staff-kds.mmd](./diagrams/sequence-staff-kds.mmd) |
+| **13** | **State Machine** | Máy trạng thái vòng đời đơn hàng | [order-state-machine.mmd](./diagrams/order-state-machine.mmd) |
 
 ---
 
-## 2. CÁCH XEM PHÓNG TO THU NHỎ 1.000% KHÔNG VỠ HẠT (VECTOR SVG)
-
-Nếu màn hình hoặc trình xem Markdown mặc định quá nhỏ:
-1. Truy cập thư mục [docs/diagrams/svg/](./diagrams/svg/).
-2. Nhấp đúp chuột vào bất kỳ tệp `.svg` nào (hoặc kéo thả vào trình duyệt Chrome, Edge, Brave, Firefox).
-3. Sử dụng con lăn chuột kết hợp phím `Ctrl` (`Ctrl + Scroll`) để phóng to lên **500% – 1.000%**. Toàn bộ chữ viết, mũi tên và ký hiệu hình khối sẽ giữ độ sắc nét tuyệt đối, không hề bị vỡ hạt hay mờ nét.
+## 2. KẾT XUẤT VÀ TÙY BIẾN ĐỒ HỌA TRÊN DRAW.IO
+Toàn bộ mã nguồn biểu đồ được thiết kế tương thích trực tiếp với trình dựng của Draw.io. Khi cần đưa vào Word báo cáo hoặc slide thuyết trình, bạn chỉ cần nhập mã Mermaid vào Draw.io (xem Mục 3) và xuất ra file ảnh PNG (DPI 300%) hoặc PDF/SVG vector để đạt độ sắc nét tuyệt đối.
 
 ---
 

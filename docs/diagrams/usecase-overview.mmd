@@ -20,25 +20,25 @@ flowchart LR
     classDef adminPkg fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
 
     %% 4 TÁC NHÂN (ACTORS)
-    subgraph ACTORS ["CÁC TÁC NHÂN HỆ THỐNG (ACTORS)"]
+    subgraph ACTORS ["CÁC TÁC NHÂN HỆ THỐNG"]
         direction TB
-        ACT_CUSTOMER["👤 Khách hàng<br>(Customer)"]:::actorNode
-        ACT_STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / Barista)"]:::actorNode
-        ACT_ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
-        ACT_CRON["⏱️ Hệ thống Tự động<br>(System Cron Daemon)"]:::actorNode
+        ACT_CUSTOMER["👤 Khách hàng"]:::actorNode
+        ACT_STAFF["🧑‍🍳 Nhân viên pha chế"]:::actorNode
+        ACT_ADMIN["👨‍💼 Quản trị viên"]:::actorNode
+        ACT_CRON["⏱️ Bộ xử lý tự động"]:::actorNode
     end
 
-    %% Kế thừa vai trò
-    ACT_ADMIN -.->|"«generalizes»<br>Kế thừa quyền quầy"| ACT_STAFF
+    %% Kế thừa vai trò (Chuẩn UML Generalization)
+    ACT_ADMIN --|> ACT_STAFF
 
-    %% 5 PHÂN HỆ USE CASE CHÍNH (SYSTEM PACKAGES)
-    subgraph PACKAGES ["CÁC PHÂN HỆ USE CASE CỐT LÕI (SYSTEM PACKAGES)"]
+    %% 5 PHÂN HỆ USE CASE CHÍNH
+    subgraph PACKAGES ["CÁC PHÂN HỆ CHỨC NĂNG CỐT LÕI"]
         direction TB
-        PKG_AUTH["🔐 [PKG-01] Phân hệ Xác thực & Hồ sơ<br>• Đăng ký / Đăng nhập JWT<br>• Tra cứu hồ sơ & Điểm tích lũy"]:::pkgNode
-        PKG_ORDER["☕ [PKG-02] Phân hệ Thực đơn & Đặt đồ uống<br>• Tra cứu Menu, Chọn Size / Toppings<br>• Quản trị giỏ hàng, Đặt đơn PENDING<br>• Trừ kho Optimistic Locking, Hủy đơn"]:::pkgNode
-        PKG_PAYMENT["💳 [PKG-03] Phân hệ Thanh toán & Điểm thưởng<br>• Áp dụng mã khuyến mãi Voucher<br>• Thanh toán Idempotent (Ví/Thẻ)<br>• Phòng thủ P2002, Tự động cộng Loyalty"]:::pkgNode
-        PKG_KDS["📋 [PKG-04] Phân hệ Pha chế & Quầy (KDS)<br>• Hàng đợi đơn hàng FIFO thời gian thực<br>• Chuyển trạng thái PAID ➔ PREPARING ➔ READY<br>• Bàn giao COMPLETED, Hủy sự cố tại quầy"]:::pkgNode
-        PKG_ADMIN["⚙️ [PKG-05] Phân hệ Quản trị & Tự động hóa<br>• Quản lý giá món, công thức, tồn kho<br>• Phân quyền RBAC, kiểm toán hệ thống<br>• Cron Job dọn dẹp đơn quá hạn 15 phút<br>• Cơ chế Lazy-Check Timeout khi xem đơn"]:::adminPkg
+        PKG_AUTH["🔐 [PKG-01] Phân hệ Xác thực & Hồ sơ<br>• Đăng ký / Đăng nhập tài khoản<br>• Xem thông tin cá nhân & Điểm tích lũy"]:::pkgNode
+        PKG_ORDER["☕ [PKG-02] Phân hệ Thực đơn & Đặt đồ uống<br>• Xem thực đơn, chọn kích cỡ & phụ liệu<br>• Quản lý giỏ hàng, đặt đơn chờ thanh toán<br>• Tự động kiểm tra tồn kho, hủy đơn hàng"]:::pkgNode
+        PKG_PAYMENT["💳 [PKG-03] Phân hệ Thanh toán & Điểm thưởng<br>• Áp dụng mã khuyến mãi giảm giá<br>• Thanh toán không tiền mặt (Ví / Thẻ)<br>• Chống trùng giao dịch, tích lũy điểm thưởng"]:::pkgNode
+        PKG_KDS["📋 [PKG-04] Phân hệ Pha chế & Quầy bar<br>• Tiếp nhận danh sách đơn theo thứ tự quầy<br>• Cập nhật tiến độ: Đang pha chế ➔ Sẵn sàng<br>• Bàn giao đồ uống, xử lý sự cố tại quầy"]:::pkgNode
+        PKG_ADMIN["⚙️ [PKG-05] Phân hệ Quản trị & Tự động hóa<br>• Quản lý danh mục món, giá bán & tồn kho<br>• Quản lý người dùng và cấu hình phân quyền<br>• Tự động hủy đơn hàng quá hạn 15 phút<br>• Tự động hoàn trả số lượng vào kho"]:::adminPkg
     end
 
     %% KẾT NỐI TÁC NHÂN TỚI PHÂN HỆ

@@ -28,71 +28,45 @@
 }}%%
 sequenceDiagram
     autonumber
-    actor Customer as "Khách hàng (Client App)"
-    participant FE as "Next.js Frontend (Cart)"
-    participant Controller as "OrdersController"
-    participant OrdersSvc as "OrdersService"
-    participant VouchersSvc as "VouchersService"
-    participant DB as "PostgreSQL (Prisma Transaction)"
+    actor KhachHang as Khách hàng
+    participant TrangMenu as Giao diện thực đơn
+    participant FormGioHang as Màn hình giỏ hàng
+    participant XuLyDonHang as Xử lý đơn hàng
+    participant CSDL as Cơ sở dữ liệu
 
-    Customer->>FE: Bấm nút "Đặt hàng & Thanh toán"
-    FE->>Controller: POST /api/orders (Bearer JWT)<br>{ items: [{ productId, size, toppings, qty }], voucherCode }
-    Controller->>OrdersSvc: createOrder(userId, dto)
+    KhachHang->>TrangMenu: Xem thực đơn và chọn món đồ uống
+    TrangMenu-->>KhachHang: Hiển thị bảng tùy chọn kích cỡ và phụ liệu
+    KhachHang->>TrangMenu: Chọn kích cỡ, phụ liệu và nhấn 'Thêm vào giỏ'
+    TrangMenu->>FormGioHang: Cập nhật danh sách món đã chọn
 
-    Note over OrdersSvc,DB: Bước 1: Bảo vệ toàn vẹn giá từ CSDL (Chống can thiệp giá Client)
-    OrdersSvc->>DB: prisma.product.findMany({ where: { id: { in: productIds } } })
-    DB-->>OrdersSvc: Trả về danh sách Product mẫu (price, stock, version)
+    KhachHang->>FormGioHang: Mở xem giỏ hàng
 
-    loop Kiểm tra từng món trong giỏ hàng
-        alt Tồn kho không đủ (product.stock < item.qty)
-            OrdersSvc-->>Controller: Ném lỗi ConflictException (HTTP 409)
-            Controller-->>FE: 409 Conflict ("Sản phẩm không đủ số lượng tồn kho")
-            FE-->>Customer: Hiển thị thông báo món đã hết hàng
-        else Đủ tồn kho
-            OrdersSvc->>OrdersSvc: Tính đơn giá chuẩn = calculateItemUnitPrice(price, size, toppings)
-            OrdersSvc->>OrdersSvc: Ghi nhận item kèm curVersion = product.version
+    opt Áp dụng mã khuyến mãi
+        KhachHang->>FormGioHang: Nhập mã giảm giá và nhấn 'Áp dụng'
+        FormGioHang->>XuLyDonHang: Gửi mã giảm giá cần kiểm tra
+        XuLyDonHang->>CSDL: Tra cứu điều kiện và thời hạn của mã
+        CSDL-->>XuLyDonHang: Trả về thông tin mã giảm giá
+        alt Mã không hợp lệ hoặc không đủ giá trị tối thiểu
+            XuLyDonHang-->>FormGioHang: Thông báo mã không đủ điều kiện
+            FormGioHang-->>KhachHang: Hiển thị thông báo lỗi mã giảm giá
+        else Mã hợp lệ
+            XuLyDonHang-->>FormGioHang: Xác nhận mã hợp lệ và số tiền được giảm
+            FormGioHang-->>KhachHang: Hiển thị tổng tiền mới sau giảm giá
         end
     end
 
-    Note over OrdersSvc,VouchersSvc: Bước 2: Thẩm định mã giảm giá (Voucher Validation)
-    opt Khách có nhập voucherCode
-        OrdersSvc->>VouchersSvc: validateVoucher(voucherCode, subtotal)
-        alt Voucher không hợp lệ hoặc không đủ điều kiện minOrder
-            VouchersSvc-->>OrdersSvc: Ném BadRequestException (HTTP 400)
-            OrdersSvc-->>Controller: Ném lỗi BadRequestException (HTTP 400)
-            Controller-->>FE: 400 Bad Request ("Voucher không đủ điều kiện")
-            FE-->>Customer: Hiển thị lỗi voucher không hợp lệ
-        else Voucher hợp lệ
-            VouchersSvc-->>OrdersSvc: Trả về discountAmount hợp lệ
-        end
-    end
-
-    OrdersSvc->>OrdersSvc: Tính total = Math.max(0, subtotal - discountAmount)
-
-    Note over OrdersSvc,DB: Bước 3: Mở Database Transaction với Optimistic Locking
-    OrdersSvc->>DB: prisma.$transaction(async (tx) => { ... })
+    KhachHang->>FormGioHang: Nhấn nút 'Tiến hành đặt hàng'
+    FormGioHang->>XuLyDonHang: Gửi thông tin đơn hàng (danh sách món, số lượng, mã giảm)
     
-    loop Duyệt từng item để trừ kho có điều kiện (Optimistic Lock)
-        OrdersSvc->>DB: UPDATE products SET stock = stock - qty, version = version + 1
-        Note over OrdersSvc,DB: Điều kiện: id = item.productId, version = curVersion, stock >= qty
-        DB-->>OrdersSvc: Trả về { count: N }
+    XuLyDonHang->>CSDL: Kiểm tra số lượng tồn kho và đơn giá thực tế
+    CSDL-->>XuLyDonHang: Trả về thông tin tồn kho của các sản phẩm
 
-        alt updateResult.count == 0 (Race Condition - Version bị sửa đổi bởi đơn khác)
-            OrdersSvc-->>DB: ROLLBACK TRANSACTION!
-            OrdersSvc-->>Controller: Ném lỗi ConflictException (HTTP 409)
-            Controller-->>FE: 409 Conflict ("Sản phẩm đã thay đổi tồn kho. Vui lòng thử lại")
-            FE-->>Customer: Báo xung đột kho, tải lại giỏ hàng
-        end
+    alt Sản phẩm đã hết hàng hoặc không đủ tồn kho
+        XuLyDonHang-->>FormGioHang: Thông báo không đủ số lượng tồn kho
+        FormGioHang-->>KhachHang: Hiển thị cảnh báo 'Món đã hết hoặc không đủ số lượng'
+    else Tồn kho đáp ứng đủ số lượng
+        XuLyDonHang->>CSDL: Cập nhật trừ tồn kho và lưu thông tin đơn hàng mới
+        CSDL-->>XuLyDonHang: Xác nhận lưu đơn hàng thành công (Mã đơn hàng mới)
+        XuLyDonHang-->>FormGioHang: Phản hồi thông tin đơn hàng vừa khởi tạo
+        FormGioHang-->>KhachHang: Chuyển sang màn hình đơn hàng (Chờ thanh toán trong 15 phút)
     end
-
-    Note over OrdersSvc,DB: Bước 4: Tạo mã đơn và lưu đơn PENDING
-    OrdersSvc->>DB: tx.order.count()
-    DB-->>OrdersSvc: Trả về tổng orderCount hiện có
-    OrdersSvc->>OrdersSvc: Sinh code = "#" + (1001 + orderCount)<br>Thiết lập expiresAt = now() + 15 phút
-    OrdersSvc->>DB: tx.order.create({ data: { code, status: 'PENDING', total, expiresAt, items: { create: [...] } } })
-    DB-->>OrdersSvc: Bản ghi Order mới hoàn chỉnh
-    OrdersSvc->>DB: COMMIT TRANSACTION!
-
-    OrdersSvc-->>Controller: Trả về thực thể newOrder
-    Controller-->>FE: HTTP 201 Created (Order Object)
-    FE-->>Customer: Chuyển hướng tới trang /orders/[id] (Bắt đầu đếm ngược 14:59)

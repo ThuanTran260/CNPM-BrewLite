@@ -20,73 +20,73 @@ flowchart LR
     classDef storeBox fill:#f3e8ff,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
 
     %% CỘT 1: CÁC TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)
-    subgraph TIER_ENTITIES ["CỘT 1: TÁC NHÂN NGOÀI (ENTITIES)"]
+    subgraph TIER_ENTITIES ["CỘT 1: TÁC NHÂN NGOÀI"]
         direction TB
-        CUST["👤 Khách hàng<br>(Customer)"]:::entityBox
-        STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / KDS)"]:::entityBox
-        ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::entityBox
-        GATEWAY["💳 Cổng thanh toán<br>(Mock Gateway)"]:::entityBox
-        CRON["⏱️ Hệ thống Tự động<br>(Cron Scheduler)"]:::entityBox
+        CUST["👤 Khách hàng"]:::entityBox
+        STAFF["🧑‍🍳 Nhân viên pha chế"]:::entityBox
+        ADMIN["👨‍💼 Quản trị viên"]:::entityBox
+        GATEWAY["💳 Cổng thanh toán"]:::entityBox
+        CRON["⏱️ Bộ xử lý tự động"]:::entityBox
     end
 
     %% CỘT 2: TIẾN TRÌNH XỬ LÝ CỐT LÕI (CORE PROCESSES)
-    subgraph TIER_PROCESSES ["CỘT 2: TIẾN TRÌNH XỬ LÝ (PROCESSES)"]
+    subgraph TIER_PROCESSES ["CỘT 2: TIẾN TRÌNH XỬ LÝ"]
         direction TB
-        P1(("1.0 Xác thực &<br>Quản lý Tài khoản")):::processBubble
+        P1(("1.0 Xác thực &<br>Quản lý Người dùng")):::processBubble
         P2(("2.0 Quản lý Thực đơn<br>& Tra cứu Tồn kho")):::processBubble
-        P3(("3.0 Xử lý Đặt hàng<br>& Trừ kho Optimistic")):::processBubble
-        P4(("4.0 Xử lý Thanh toán<br>& Tích điểm Idempotent")):::processBubble
-        P5(("5.0 Điều phối Pha chế<br>& Màn hình KDS")):::processBubble
-        P6(("6.0 Tự động Dọn dẹp<br>& Hoàn kho Đơn quá hạn")):::processBubble
+        P3(("3.0 Xử lý Đặt hàng<br>& Trừ kho Tự động")):::processBubble
+        P4(("4.0 Xử lý Thanh toán<br>& Tích điểm Thưởng")):::processBubble
+        P5(("5.0 Điều phối Pha chế<br>& Theo dõi Quầy bar")):::processBubble
+        P6(("6.0 Tự động Hủy đơn<br>& Hoàn kho Quá hạn")):::processBubble
     end
 
     %% CỘT 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)
-    subgraph TIER_STORES ["CỘT 3: KHO DỮ LIỆU (DATA STORES)"]
+    subgraph TIER_STORES ["CỘT 3: KHO DỮ LIỆU"]
         direction TB
-        D1[("[(D1)]<br>users")]:::storeBox
-        D2[("[(D2)]<br>products")]:::storeBox
-        D3[("[(D3)]<br>orders")]:::storeBox
-        D4[("[(D4)]<br>order_items")]:::storeBox
-        D5[("[(D5)]<br>payments")]:::storeBox
-        D6[("[(D6)]<br>vouchers")]:::storeBox
+        D1[("[(D1)]<br>Người dùng")]:::storeBox
+        D2[("[(D2)]<br>Thực đơn & Tồn kho")]:::storeBox
+        D3[("[(D3)]<br>Đơn hàng")]:::storeBox
+        D4[("[(D4)]<br>Chi tiết đơn hàng")]:::storeBox
+        D5[("[(D5)]<br>Lịch sử thanh toán")]:::storeBox
+        D6[("[(D6)]<br>Mã khuyến mãi")]:::storeBox
     end
 
-    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 1.0 (Auth & Account)
-    CUST <-->|"1. Đăng ký / Đăng nhập<br>Cấp phát JWT Token"| P1
-    ADMIN -->|"Cấu hình RBAC<br>Khóa tài khoản"| P1
-    P1 <-->|"Ghi nhận / Đọc User<br>PasswordHash"| D1
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 1.0 (Xác thực & Tài khoản)
+    CUST <-->|"1. Đăng ký, đăng nhập<br>& Xác thực tài khoản"| P1
+    ADMIN -->|"Cấu hình phân quyền<br>& Khóa tài khoản"| P1
+    P1 <-->|"Lưu trữ & đối chiếu<br>thông tin tài khoản"| D1
 
-    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 2.0 (Menu & Catalog)
-    CUST <-->|"2. Tra cứu Menu<br>Danh mục đồ uống"| P2
-    ADMIN <-->|"Cập nhật giá & món<br>Điều chỉnh kho"| P2
-    P2 <-->|"Đọc danh mục<br>Cập nhật sản phẩm & kho"| D2
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 2.0 (Thực đơn & Tồn kho)
+    CUST <-->|"2. Xem thực đơn<br>& thông tin đồ uống"| P2
+    ADMIN <-->|"Cập nhật giá bán<br>& số lượng tồn kho"| P2
+    P2 <-->|"Đọc danh mục đồ uống<br>& số lượng khả dụng"| D2
 
-    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 3.0 (Ordering & Stock Allocation)
-    CUST -->|"3. Gửi giỏ hàng<br>& Mã Voucher"| P3
-    P3 -->|"Phản hồi mã đơn #10xx<br>Hạn thanh toán 15p"| CUST
-    P3 -->|"Xác thực voucher<br>Đọc minOrder"| D6
-    P3 <-->|"Trừ kho Optimistic<br>(stock -= qty, ver += 1)"| D2
-    P3 -->|"Tạo đơn PENDING<br>(expiresAt = now + 15m)"| D3
-    P3 -->|"Snapshot món,<br>size, topping"| D4
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 3.0 (Đặt hàng & Giữ kho)
+    CUST -->|"3. Gửi giỏ hàng<br>& Mã giảm giá"| P3
+    P3 -->|"Phản hồi mã đơn hàng<br>& hạn thanh toán 15 phút"| CUST
+    P3 -->|"Kiểm tra điều kiện<br>mã khuyến mãi"| D6
+    P3 <-->|"Kiểm tra & trừ số lượng<br>tồn kho an toàn"| D2
+    P3 -->|"Lưu đơn hàng mới<br>(Hạn chờ 15 phút)"| D3
+    P3 -->|"Lưu chi tiết món,<br>kích cỡ & phụ liệu"| D4
 
-    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 4.0 (Payments & Idempotency)
-    CUST -->|"4. Yêu cầu thanh toán<br>(Idempotency-Key)"| P4
-    P4 -->|"Kết quả thanh toán<br>& Điểm Loyalty"| CUST
-    P4 <-->|"Gửi lệnh thanh toán<br>Nhận kết quả GD"| GATEWAY
-    P4 <-->|"Kiểm tra trùng khóa<br>Ghi nhận Payment"| D5
-    P4 -->|"Cập nhật PAID<br>(hoặc PAYMENT_FAILED)"| D3
-    P4 -->|"Tăng usedCount<br>voucher thành công"| D6
-    P4 -->|"Cộng điểm Loyalty<br>(1đ / 10.000đ)"| D1
-    P4 -.->|"Nếu thanh toán lỗi:<br>Tự động hoàn kho"| D2
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 4.0 (Thanh toán & Chống trùng lặp)
+    CUST -->|"4. Yêu cầu thanh toán<br>(Kèm mã giao dịch)"| P4
+    P4 -->|"Kết quả thanh toán<br>& Điểm thưởng mới"| CUST
+    P4 <-->|"Gửi lệnh thanh toán<br>& Nhận kết quả đối tác"| GATEWAY
+    P4 <-->|"Kiểm tra trùng giao dịch<br>& Lưu lịch sử thanh toán"| D5
+    P4 -->|"Cập nhật trạng thái đơn<br>(Đã thanh toán / Thất bại)"| D3
+    P4 -->|"Ghi nhận số lần<br>dùng mã giảm giá"| D6
+    P4 -->|"Cộng điểm thưởng thành viên<br>(1 điểm / 10.000đ)"| D1
+    P4 -.->|"Nếu thanh toán thất bại:<br>Tự động hoàn kho"| D2
 
-    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 5.0 (Barista KDS & Fulfillment)
-    STAFF <-->|"5. Nhận hàng đợi FIFO<br>Cập nhật tiến độ KDS"| P5
-    ADMIN -->|"Giám sát hàng đợi<br>Can thiệp đơn KDS"| P5
-    P5 <-->|"Đọc đơn PAID/PREP/READY<br>Cập nhật trạng thái"| D3
-    P5 -->|"Đọc chi tiết món,<br>size, topping"| D4
-    P5 -.->|"Hủy sự cố tại quầy:<br>Hoàn kho sản phẩm"| D2
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 5.0 (Pha chế & Điều phối quầy)
+    STAFF <-->|"5. Nhận danh sách đơn theo thứ tự<br>& Cập nhật tiến độ quầy"| P5
+    ADMIN -->|"Giám sát hàng đợi<br>& Can thiệp đơn tại quầy"| P5
+    P5 <-->|"Đọc đơn cần làm<br>& Cập nhật tiến độ"| D3
+    P5 -->|"Xem chi tiết món,<br>kích cỡ & phụ liệu"| D4
+    P5 -.->|"Hủy sự cố tại quầy:<br>Hoàn trả số lượng kho"| D2
 
-    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 6.0 (Cron Cleanup & Timeout)
-    CRON -->|"6. Kích hoạt định kỳ<br>(5 phút/lần)"| P6
-    P6 <-->|"Quét đơn PENDING quá hạn<br>Chuyển CANCELLED"| D3
-    P6 -->|"Tự động hoàn trả<br>tồn kho (stock += qty)"| D2
+    %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 6.0 (Tự động hóa & Xử lý quá hạn)
+    CRON -->|"6. Kích hoạt định kỳ<br>(5 phút một lần)"| P6
+    P6 <-->|"Quét đơn quá hạn 15 phút<br>& Chuyển trạng thái Đã hủy"| D3
+    P6 -->|"Tự động hoàn trả<br>số lượng vào kho"| D2

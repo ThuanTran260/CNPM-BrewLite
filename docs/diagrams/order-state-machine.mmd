@@ -14,31 +14,31 @@
 stateDiagram-v2
     direction TB
 
-    [*] --> PENDING : 1. Khởi tạo đơn (POST /api/orders)
+    [*] --> PENDING : 1. Khởi tạo đơn hàng mới
 
-    state "PENDING<br>(Đang chờ thanh toán - Hạn 15p)" as PENDING
-    state "PAYMENT_FAILED<br>(Thanh toán thất bại / Hoàn kho)" as PAYMENT_FAILED
-    state "PAID<br>(Đã thanh toán / Chờ quầy)" as PAID
-    state "PREPARING<br>(Barista đang pha chế)" as PREPARING
-    state "READY<br>(Đã xong món / Chờ lấy)" as READY
-    state "COMPLETED<br>(Đã nhận món - Thành công)" as COMPLETED
-    state "CANCELLED<br>(Đã hủy đơn / Thu hồi kho)" as CANCELLED
+    state "CHỜ THANH TOÁN (PENDING)<br>Hạn thanh toán 15 phút" as PENDING
+    state "THANH TOÁN THẤT BẠI (PAYMENT_FAILED)<br>Chờ thử lại hoặc hủy đơn" as PAYMENT_FAILED
+    state "ĐÃ THANH TOÁN (PAID)<br>Chờ quầy bar tiếp nhận" as PAID
+    state "ĐANG PHA CHẾ (PREPARING)<br>Nhân viên đang làm món" as PREPARING
+    state "SẴN SÀNG NHẬN (READY)<br>Đã pha xong, mời khách nhận" as READY
+    state "HOÀN TẤT (COMPLETED)<br>Đã bàn giao cho khách" as COMPLETED
+    state "ĐÃ HỦY (CANCELLED)<br>Đã hoàn trả số lượng kho" as CANCELLED
 
     %% Luồng chuyển tiếp chuẩn (Happy Path)
-    PENDING --> PAID : 2. Thanh toán thành công (POST /api/payments)
-    PAID --> PREPARING : 3. Barista nhận làm món (PATCH /orders/{id}/status)
-    PREPARING --> READY : 4. Pha chế hoàn tất (PATCH /orders/{id}/status)
-    READY --> COMPLETED : 5. Giao món cho khách (PATCH /orders/{id}/status)
-    COMPLETED --> [*] : Kết thúc chu trình thành công
+    PENDING --> PAID : 2. Thanh toán thành công
+    PAID --> PREPARING : 3. Nhân viên bắt đầu pha chế
+    PREPARING --> READY : 4. Pha chế hoàn tất
+    READY --> COMPLETED : 5. Bàn giao đồ uống cho khách
+    COMPLETED --> [*] : Hoàn thành chu trình đơn hàng
 
     %% Nhánh xử lý lỗi thanh toán
-    PENDING --> PAYMENT_FAILED : Giao dịch lỗi / Không đủ số dư
-    PAYMENT_FAILED --> PENDING : Khách bấm Thử lại thanh toán
+    PENDING --> PAYMENT_FAILED : Giao dịch thanh toán không thành công
+    PAYMENT_FAILED --> PENDING : Khách hàng bấm thử lại thanh toán
 
     %% Nhánh hủy đơn và hoàn trả kho
-    PENDING --> CANCELLED : Khách chủ động hủy / Hết hạn 15p (Cron/Lazy)
-    PAYMENT_FAILED --> CANCELLED : Khách hoặc Nhân viên hủy đơn lỗi
-    PAID --> CANCELLED : Nhân viên quầy hủy sự cố (chưa sang PREPARING)
+    PENDING --> CANCELLED : Khách hủy đơn / Quá hạn thanh toán 15 phút
+    PAYMENT_FAILED --> CANCELLED : Khách hàng hoặc nhân viên hủy đơn lỗi
+    PAID --> CANCELLED : Nhân viên hủy do sự cố tại quầy
     CANCELLED --> [*] : Kết thúc chu trình hủy đơn
 
     classDef successState fill:#dcfce7,stroke:#1e293b,color:#000000,stroke-width:2px;

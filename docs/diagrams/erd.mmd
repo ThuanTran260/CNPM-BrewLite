@@ -11,77 +11,77 @@
   }
 }}%%
 erDiagram
-    %% Định nghĩa các thực thể và quan hệ chuẩn hóa 100% Prisma Schema
-    User ||--o{ Order : "places"
-    Order ||--|{ OrderItem : "contains"
-    Product ||--o{ OrderItem : "referenced_in"
-    Order ||--o{ Payment : "has"
-    Voucher ||..o{ Order : "applies_to"
+    %% Định nghĩa các thực thể và mối quan hệ chuẩn hóa của hệ thống
+    User ||--o{ Order : "đặt"
+    Order ||--|{ OrderItem : "gồm"
+    Product ||--o{ OrderItem : "thuộc"
+    Order ||--o{ Payment : "có"
+    Voucher ||..o{ Order : "áp dụng"
 
     User {
-        string id PK "UUID Khóa chính"
+        string id PK "Khóa chính duy nhất"
         string email UK "Địa chỉ email duy nhất"
-        string passwordHash "Mật khẩu băm Bcrypt"
+        string passwordHash "Mật khẩu đã mã hóa"
         enum_Role role "Vai trò: CUSTOMER | STAFF | ADMIN"
         int loyaltyPoints "Điểm tích lũy thành viên"
         datetime createdAt "Thời điểm tạo tài khoản"
     }
 
     Product {
-        string id PK "UUID Khóa chính"
-        string name "Tên sản phẩm đồ uống"
+        string id PK "Khóa chính duy nhất"
+        string name "Tên món đồ uống"
         int price "Giá niêm yết cơ bản (VND)"
         string description "Mô tả chi tiết sản phẩm"
-        string imageUrl "Đường dẫn ảnh sản phẩm"
+        string imageUrl "Đường dẫn hình ảnh món"
         int stock "Số lượng tồn kho khả dụng"
-        int version "Phiên bản Optimistic Locking"
+        int version "Phiên bản kiểm soát tồn kho"
         datetime createdAt "Thời điểm khởi tạo sản phẩm"
     }
 
     Order {
-        string id PK "UUID Khóa chính"
-        string code UK "Mã định danh đơn ví dụ 1042"
-        string userId FK "Liên kết khóa ngoại tới users.id"
+        string id PK "Khóa chính duy nhất"
+        string code UK "Mã định danh đơn (ví dụ: #1042)"
+        string userId FK "Khóa ngoại liên kết người dùng"
         enum_OrderStatus status "Trạng thái đơn hàng hiện tại"
         int subtotal "Tổng tiền hàng trước giảm giá"
-        int discountAmount "Số tiền được giảm giá qua Voucher"
+        int discountAmount "Số tiền được giảm qua khuyến mãi"
         int total "Tổng tiền thanh toán cuối cùng"
-        string voucherCode "Mã voucher áp dụng nếu có"
-        int version "Phiên bản kiểm soát xung đột"
-        datetime expiresAt "Hạn thanh toán 15 phút ADR-007"
-        datetime createdAt "Thời điểm khởi tạo đơn hàng"
+        string voucherCode "Mã khuyến mãi áp dụng"
+        int version "Phiên bản kiểm soát cập nhật"
+        datetime expiresAt "Thời hạn thanh toán 15 phút"
+        datetime createdAt "Thời điểm tạo đơn hàng"
         datetime updatedAt "Thời điểm cập nhật trạng thái"
     }
 
     OrderItem {
-        string id PK "UUID Khóa chính"
-        string orderId FK "Khóa ngoại tham chiếu orders.id"
-        string productId FK "Khóa ngoại tham chiếu products.id"
-        string productName "Snapshot tên món tại thời điểm đặt"
-        enum_Size size "Kích cỡ ly: S | M | L"
-        json toppings "Mảng danh sách topping (string[])"
-        int qty "Số lượng món đặt mua"
-        int unitPrice "Đơn giá sau khi cộng Size và Topping"
-        int lineTotal "Thành tiền dòng (unitPrice * qty)"
+        string id PK "Khóa chính dòng chi tiết"
+        string orderId FK "Khóa ngoại liên kết đơn hàng"
+        string productId FK "Khóa ngoại liên kết sản phẩm"
+        string productName "Tên món tại thời điểm đặt"
+        enum_Size size "Kích cỡ đồ uống: S | M | L"
+        json toppings "Danh sách phụ liệu đính kèm"
+        int qty "Số lượng phần đồ uống đặt mua"
+        int unitPrice "Đơn giá sau khi cộng kích cỡ và phụ liệu"
+        int lineTotal "Thành tiền dòng chi tiết"
     }
 
     Payment {
-        string id PK "UUID Khóa chính"
-        string orderId FK "Khóa ngoại tham chiếu orders.id"
+        string id PK "Khóa chính giao dịch"
+        string orderId FK "Khóa ngoại liên kết đơn hàng"
         string idempotencyKey UK "Khóa chống trùng lặp thanh toán"
         int amount "Số tiền thực tế thanh toán"
         enum_PaymentMethod method "Phương thức: E_WALLET | BANK_CARD"
-        enum_PaymentStatus status "Trạng thái giao dịch: SUCCESS | FAILED"
+        enum_PaymentStatus status "Kết quả giao dịch: SUCCESS | FAILED"
         datetime createdAt "Thời điểm thực hiện giao dịch"
     }
 
     Voucher {
-        string code PK "Mã voucher viết hoa duy nhất"
+        string code PK "Mã khuyến mãi duy nhất"
         enum_VoucherType type "Loại chiết khấu: PERCENT | FIXED"
-        int value "Giá trị % giảm hoặc số tiền VND cố định"
+        int value "Giá trị phần trăm hoặc số tiền giảm"
         int minOrder "Giá trị đơn tối thiểu để áp dụng"
         int usageLimit "Số lần sử dụng tối đa của mã"
         int usedCount "Số lần đã sử dụng thành công"
-        datetime expiresAt "Thời điểm hết hạn của voucher"
-        datetime createdAt "Thời điểm tạo voucher"
+        datetime expiresAt "Thời điểm hết hạn của mã"
+        datetime createdAt "Thời điểm tạo mã khuyến mãi"
     }

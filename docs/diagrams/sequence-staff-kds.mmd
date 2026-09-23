@@ -1,0 +1,73 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'actorBkg': '#e0f2fe',
+    'actorBorder': '#1e293b',
+    'actorTextColor': '#000000',
+    'actorLineColor': '#1e293b',
+    'signalColor': '#1e293b',
+    'signalTextColor': '#000000',
+    'labelBoxBkgColor': '#fef3c7',
+    'labelBoxBorderColor': '#1e293b',
+    'labelTextColor': '#000000',
+    'loopTextColor': '#000000',
+    'noteBorderColor': '#1e293b',
+    'noteBkgColor': '#fef3c7',
+    'noteTextColor': '#000000',
+    'activationBorderColor': '#1e293b',
+    'activationBkgColor': '#cbd5e1',
+    'sequenceNumberColor': '#000000',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    actor NhanVien as Nhân viên pha chế
+    participant TrangWeb as Giao diện chính
+    participant ManHinhQuay as Màn hình quầy pha chế
+    participant XuLyPhaChe as Xử lý pha chế
+    participant CSDL as Cơ sở dữ liệu
+
+    NhanVien->>TrangWeb: Đăng nhập và truy cập màn hình quầy bar
+    TrangWeb->>ManHinhQuay: Khởi tạo giao diện điều phối pha chế
+    ManHinhQuay->>XuLyPhaChe: Yêu cầu danh sách đơn hàng cần xử lý
+    XuLyPhaChe->>CSDL: Truy vấn đơn hàng đã thanh toán theo thứ tự thời gian
+    CSDL-->>XuLyPhaChe: Trả về danh sách đơn hàng kèm chi tiết món
+    XuLyPhaChe-->>ManHinhQuay: Cung cấp danh sách thẻ đơn hàng
+    ManHinhQuay-->>NhanVien: Hiển thị các thẻ đơn cần pha chế
+
+    NhanVien->>ManHinhQuay: Nhấn nút 'Bắt đầu pha chế'
+    ManHinhQuay->>XuLyPhaChe: Gửi yêu cầu chuyển trạng thái Đang pha chế
+    XuLyPhaChe->>CSDL: Cập nhật trạng thái đơn hàng thành Đang pha chế
+    CSDL-->>XuLyPhaChe: Xác nhận cập nhật thành công
+    XuLyPhaChe-->>ManHinhQuay: Xác nhận chuyển trạng thái
+    ManHinhQuay-->>NhanVien: Đổi màu thẻ đơn sang trạng thái Đang pha chế
+
+    NhanVien->>ManHinhQuay: Pha chế hoàn tất, nhấn nút 'Hoàn thành món'
+    ManHinhQuay->>XuLyPhaChe: Gửi yêu cầu chuyển trạng thái Sẵn sàng nhận
+    XuLyPhaChe->>CSDL: Cập nhật trạng thái đơn thành Sẵn sàng nhận
+    CSDL-->>XuLyPhaChe: Xác nhận cập nhật thành công
+    XuLyPhaChe-->>ManHinhQuay: Thông báo món đã sẵn sàng
+    ManHinhQuay-->>NhanVien: Đổi màu thẻ đơn sang Sẵn sàng phục vụ
+
+    NhanVien->>ManHinhQuay: Đối chiếu mã nhận món và nhấn 'Bàn giao cho khách'
+    ManHinhQuay->>XuLyPhaChe: Gửi yêu cầu hoàn tất đơn hàng
+    XuLyPhaChe->>CSDL: Cập nhật trạng thái Đã hoàn thành (Đóng đơn hàng)
+    CSDL-->>XuLyPhaChe: Xác nhận đóng đơn hàng thành công
+    XuLyPhaChe-->>ManHinhQuay: Xác nhận hoàn tất đơn hàng
+    ManHinhQuay-->>NhanVien: Đóng thẻ đơn và xóa khỏi hàng đợi làm việc
+
+    opt Trường hợp quầy gặp sự cố (Hết nguyên liệu hoặc lỗi thiết bị)
+        NhanVien->>ManHinhQuay: Nhấn nút 'Hủy đơn sự cố'
+        ManHinhQuay->>XuLyPhaChe: Gửi yêu cầu hủy đơn và hoàn trả kho
+        XuLyPhaChe->>CSDL: Cập nhật trạng thái Đã hủy và hoàn trả số lượng vào kho
+        CSDL-->>XuLyPhaChe: Xác nhận hủy đơn và hoàn kho thành công
+        XuLyPhaChe-->>ManHinhQuay: Thông báo đơn đã được hủy và hoàn trả kho
+        ManHinhQuay-->>NhanVien: Đóng thẻ đơn sự cố và thông báo cho khách hàng
+    end

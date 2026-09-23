@@ -1,0 +1,72 @@
+%%{init: {
+  'theme': 'base',
+  'themeVariables': {
+    'primaryColor': '#e0f2fe',
+    'primaryTextColor': '#000000',
+    'primaryBorderColor': '#1e293b',
+    'lineColor': '#1e293b',
+    'secondaryColor': '#fef3c7',
+    'tertiaryColor': '#ffffff',
+    'actorBkg': '#e0f2fe',
+    'actorBorder': '#1e293b',
+    'actorTextColor': '#000000',
+    'actorLineColor': '#1e293b',
+    'signalColor': '#1e293b',
+    'signalTextColor': '#000000',
+    'labelBoxBkgColor': '#fef3c7',
+    'labelBoxBorderColor': '#1e293b',
+    'labelTextColor': '#000000',
+    'loopTextColor': '#000000',
+    'noteBorderColor': '#1e293b',
+    'noteBkgColor': '#fef3c7',
+    'noteTextColor': '#000000',
+    'activationBorderColor': '#1e293b',
+    'activationBkgColor': '#cbd5e1',
+    'sequenceNumberColor': '#000000',
+    'fontFamily': 'Segoe UI, Arial, sans-serif'
+  }
+}}%%
+sequenceDiagram
+    autonumber
+    actor NguoiDung as Người dùng
+    participant TrangWeb as Giao diện chính
+    participant FormDangNhap as Form đăng nhập
+    participant FormQuenMatKhau as Form đặt lại mật khẩu
+    participant XuLyDangNhap as Xử lý đăng nhập
+    participant CSDL as Cơ sở dữ liệu
+
+    NguoiDung->>TrangWeb: Nhấn nút 'Đăng nhập'
+    TrangWeb->>FormDangNhap: Hiển thị Form đăng nhập
+    FormDangNhap-->>NguoiDung: Xuất hiện màn hình đăng nhập
+
+    NguoiDung->>FormDangNhap: Nhập thông tin (Email, Mật khẩu)
+    NguoiDung->>FormDangNhap: Nhấn nút 'Xác nhận đăng nhập'
+    FormDangNhap->>XuLyDangNhap: Gửi thông tin đăng nhập
+    XuLyDangNhap->>CSDL: Kiểm tra thông tin tài khoản
+    CSDL-->>XuLyDangNhap: Kết quả kiểm tra tài khoản
+
+    alt Thông tin đăng nhập không hợp lệ
+        XuLyDangNhap-->>FormDangNhap: Thông báo đăng nhập thất bại
+        FormDangNhap-->>NguoiDung: Hiển thị thông báo 'Email hoặc mật khẩu không chính xác'
+    else Thông tin đăng nhập hợp lệ
+        XuLyDangNhap-->>FormDangNhap: Xác nhận đăng nhập thành công
+        FormDangNhap->>TrangWeb: Chuyển hướng về giao diện tương ứng
+        TrangWeb-->>NguoiDung: Hiển thị màn hình theo vai trò (Khách hàng / Nhân viên)
+    end
+
+    opt Trường hợp Quên mật khẩu
+        NguoiDung->>FormDangNhap: Nhấn 'Quên mật khẩu'
+        FormDangNhap->>FormQuenMatKhau: Chuyển sang Form đặt lại mật khẩu
+        FormQuenMatKhau-->>NguoiDung: Hiển thị giao diện đặt lại mật khẩu
+        NguoiDung->>FormQuenMatKhau: Nhập email tài khoản và nhấn 'Gửi yêu cầu'
+        FormQuenMatKhau->>XuLyDangNhap: Gửi yêu cầu đặt lại mật khẩu
+        XuLyDangNhap->>CSDL: Kiểm tra sự tồn tại của email
+        CSDL-->>XuLyDangNhap: Kết quả kiểm tra email
+        alt Email không tồn tại trong hệ thống
+            XuLyDangNhap-->>FormQuenMatKhau: Báo lỗi không tìm thấy tài khoản
+            FormQuenMatKhau-->>NguoiDung: Hiển thị thông báo 'Email chưa được đăng ký'
+        else Email tồn tại hợp lệ
+            XuLyDangNhap-->>FormQuenMatKhau: Xác nhận gửi mật khẩu / liên kết mới
+            FormQuenMatKhau-->>NguoiDung: Hiển thị thông báo 'Đã gửi hướng dẫn qua email'
+        end
+    end

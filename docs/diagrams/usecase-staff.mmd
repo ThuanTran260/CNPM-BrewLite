@@ -22,21 +22,22 @@ flowchart LR
     classDef cancelUC fill:#fee2e2,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
 
     %% TÁC NHÂN
-    STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / Barista)"]:::actorNode
-    ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::actorNode
+    STAFF["🧑‍🍳 Nhân viên pha chế"]:::actorNode
+    ADMIN["👨‍💼 Quản trị viên"]:::actorNode
 
-    ADMIN -.->|"«generalizes»<br>Kế thừa quyền quầy"| STAFF
+    %% Kế thừa vai trò (Chuẩn UML Generalization)
+    ADMIN --|> STAFF
 
-    %% PHÂN HỆ VẬN HÀNH KDS
-    subgraph UC_KDS ["PHÂN HỆ QUẦY PHA CHẾ & ĐIỀU PHỐI KDS"]
+    %% PHÂN HỆ VẬN HÀNH QUẦY PHA CHẾ
+    subgraph UC_KDS ["PHÂN HỆ QUẦY PHA CHẾ & ĐIỀU PHỐI ĐƠN"]
         direction TB
 
-        UC_QUEUE(["Xem hàng đợi KDS<br>(Thứ tự FIFO thời gian thực)"]):::baseUC
-        UC_PREP(["Tiếp nhận pha chế<br>(Chuyển sang PREPARING)"]):::actionUC
-        UC_READY(["Báo hoàn tất làm món<br>(Chuyển sang READY)"]):::actionUC
-        UC_COMPLETE(["Bàn giao đồ uống cho khách<br>(Chuyển sang COMPLETED)"]):::subUC
-        UC_CANCEL_STAFF(["Hủy đơn sự cố tại quầy<br>(PAID sang CANCELLED)"]):::cancelUC
-        UC_RESTOCK(["Tự động hoàn kho sản phẩm<br>(Atomic Rollback)"]):::subUC
+        UC_QUEUE(["Xem danh sách đơn theo thứ tự quầy"]):::baseUC
+        UC_PREP(["Tiếp nhận & Bắt đầu pha chế"]):::actionUC
+        UC_READY(["Báo hoàn tất làm món"]):::actionUC
+        UC_COMPLETE(["Bàn giao đồ uống cho khách"]):::actionUC
+        UC_CANCEL_STAFF(["Hủy đơn do sự cố tại quầy"]):::cancelUC
+        UC_RESTOCK(["Tự động hoàn trả số lượng vào kho"]):::subUC
     end
 
     %% TƯƠNG TÁC TÁC NHÂN -> USE CASE

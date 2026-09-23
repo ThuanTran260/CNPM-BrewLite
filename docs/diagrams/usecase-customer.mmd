@@ -22,7 +22,7 @@ flowchart LR
     classDef successUC fill:#dcfce7,stroke:#1e293b,stroke-width:1.5px,stroke-dasharray: 4 2,color:#000000,font-weight:600;
 
     %% TÁC NHÂN CHÍNH
-    CUST["👤 Khách hàng<br>(Customer)"]:::actorNode
+    CUST["👤 Khách hàng"]:::actorNode
 
     %% CÁC USE CASE CỐT LÕI
     subgraph UC_CUSTOMER ["PHÂN HỆ CHỨC NĂNG DÀNH CHO KHÁCH HÀNG"]
@@ -30,22 +30,22 @@ flowchart LR
 
         subgraph G_ACCOUNT ["1. Quản lý Tài khoản"]
             UC_AUTH(["Đăng ký & Đăng nhập"]):::baseUC
-            UC_PROFILE(["Xem hồ sơ & Điểm Loyalty"]):::baseUC
+            UC_PROFILE(["Xem thông tin & Điểm tích lũy"]):::baseUC
         end
 
         subgraph G_ORDER ["2. Đặt hàng & Thực đơn"]
-            UC_BROWSE(["Xem menu & Tùy biến món"]):::baseUC
+            UC_BROWSE(["Xem menu & Tùy chọn món"]):::baseUC
             UC_CART(["Quản lý giỏ hàng"]):::baseUC
             UC_PLACE_ORDER(["Khởi tạo đơn hàng"]):::baseUC
-            UC_VOUCHER(["Áp dụng mã Voucher"]):::subUC
-            UC_OPT_LOCK(["Trừ kho Optimistic Locking"]):::subUC
+            UC_VOUCHER(["Áp dụng mã khuyến mãi"]):::subUC
+            UC_OPT_LOCK(["Kiểm tra & Trừ tồn kho tự động"]):::subUC
             UC_CANCEL_MY(["Hủy đơn hàng của tôi"]):::baseUC
         end
 
-        subgraph G_PAYMENT ["3. Thanh toán & Tích điểm"]
+        subgraph G_PAYMENT ["3. Thanh toán & Điểm thưởng"]
             UC_PAY(["Thanh toán không tiền mặt"]):::baseUC
-            UC_IDEMPOTENT(["Kiểm tra Idempotency-Key"]):::subUC
-            UC_LOYALTY(["Cộng điểm thưởng Loyalty"]):::successUC
+            UC_IDEMPOTENT(["Chống trùng lặp giao dịch"]):::subUC
+            UC_LOYALTY(["Tích lũy điểm thưởng thành viên"]):::successUC
             UC_PAY_FAIL(["Xử lý lỗi & Tự động hoàn kho"]):::dangerUC
         end
     end
