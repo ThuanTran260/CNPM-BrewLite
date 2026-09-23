@@ -50,9 +50,34 @@ export const authApi = {
   },
 };
 
+export interface RedeemedVoucher {
+  code: string;
+  type: string;
+  value: number;
+  minOrder: number;
+  expiresAt: string | null;
+}
+
+export interface RedeemVoucherResponse {
+  voucher: RedeemedVoucher;
+  remainingPoints: number;
+}
+
+export type MyVoucher = RedeemedVoucher;
+
 export const vouchersApi = {
   validateVoucher: async (code: string, subtotal: number) => {
     const response = await apiClient.post('/vouchers/validate', { code, subtotal });
+    return response.data;
+  },
+
+  redeemVoucher: async (pointsCost: 20 | 50): Promise<RedeemVoucherResponse> => {
+    const response = await apiClient.post<RedeemVoucherResponse>('/vouchers/redeem', { pointsCost });
+    return response.data;
+  },
+
+  getMyVouchers: async (): Promise<MyVoucher[]> => {
+    const response = await apiClient.get<MyVoucher[]>('/vouchers/my');
     return response.data;
   },
 };
