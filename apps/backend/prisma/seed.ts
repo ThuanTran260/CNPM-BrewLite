@@ -34,6 +34,7 @@ async function main() {
     },
   });
 
+  // LƯU Ý DEV-ONLY: seed này reset điểm loyalty của customer về 50 mỗi lần chạy — tuyệt đối không chạy trên DB chứa điểm thưởng thật.
   const customer = await prisma.user.upsert({
     where: { email: 'customer@brewlite.vn' },
     update: { loyaltyPoints: 50 },
