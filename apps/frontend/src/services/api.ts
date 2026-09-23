@@ -31,6 +31,16 @@ export const productsApi = {
     const response = await apiClient.get<Product & { options: ProductsResponse['options'] }>(`/products/${id}`);
     return response.data;
   },
+
+  createProduct: async (data: CreateProductInput): Promise<Product> => {
+    const response = await apiClient.post<Product>('/products', data);
+    return response.data;
+  },
+
+  updateProduct: async (id: string, data: UpdateProductInput): Promise<Product> => {
+    const response = await apiClient.patch<Product>(`/products/${id}`, data);
+    return response.data;
+  },
 };
 
 export const authApi = {
@@ -113,6 +123,44 @@ export const ordersApi = {
 
   updateOrderStatus: async (id: string, to: string) => {
     const response = await apiClient.patch(`/orders/${id}/status`, { to });
+    return response.data;
+  },
+};
+
+export type AdminRole = 'CUSTOMER' | 'STAFF' | 'ADMIN';
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: AdminRole;
+  loyaltyPoints: number;
+  createdAt: string;
+}
+
+export interface CreateProductInput {
+  name: string;
+  price: number;
+  stock: number;
+  description: string;
+  imageUrl: string;
+}
+
+export interface UpdateProductInput {
+  name?: string;
+  price?: number;
+  stock?: number;
+  description?: string;
+  imageUrl?: string;
+}
+
+export const adminApi = {
+  getUsers: async (): Promise<AdminUser[]> => {
+    const response = await apiClient.get<AdminUser[]>('/admin/users');
+    return response.data;
+  },
+
+  updateUserRole: async (id: string, role: AdminRole): Promise<AdminUser> => {
+    const response = await apiClient.patch<AdminUser>(`/admin/users/${id}/role`, { role });
     return response.data;
   },
 };
