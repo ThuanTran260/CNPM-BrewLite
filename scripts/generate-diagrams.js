@@ -110,11 +110,12 @@ async function renderDiagrams() {
         continue;
       }
 
-      // Extract SVG
-      const svgBoxRegex = new RegExp(`<div id="svg_${diag.name}"[^>]*>([\\s\\S]*?)<\\/div>`);
-      const match = stdout.match(svgBoxRegex);
+      // Extract SVG (match full <svg ... </svg> element)
+      const renderId = 'render_' + diag.name.replace(/[^a-zA-Z0-9]/g, '_');
+      const svgRegex = new RegExp(`<svg[^>]*id="${renderId}"[\\s\\S]*?<\\/svg>`);
+      const match = stdout.match(svgRegex);
       if (match) {
-        let svgCode = match[1].trim();
+        let svgCode = match[0].trim();
         // Ensure proper xml declaration or svg root
         if (!svgCode.startsWith('<?xml') && !svgCode.startsWith('<svg')) {
           const svgStart = svgCode.indexOf('<svg');

@@ -80,56 +80,51 @@ BrewLite là hệ thống phần mềm chuyên biệt phục vụ chuỗi dịch
     'fontFamily': 'Segoe UI, Arial, sans-serif'
   }
 }}%%
-graph TD
+flowchart LR
     %% Định nghĩa các lớp màu sắc High-Contrast chữ đen
     classDef root fill:#fef3c7,stroke:#1e293b,color:#000000,stroke-width:3px,font-weight:700;
     classDef lvl1 fill:#e0f2fe,stroke:#1e293b,color:#000000,stroke-width:2px,font-weight:600;
     classDef lvl2 fill:#ffffff,stroke:#1e293b,color:#000000,stroke-width:1.5px,font-weight:500;
 
-    ROOT["0.0 HỆ THỐNG ĐẶT VÀ QUẢN LÝ CÀ PHÊ BREWLITE"]:::root
+    ROOT["0.0 HỆ THỐNG ĐẶT VÀ<br>QUẢN LÝ CÀ PHÊ BREWLITE"]:::root
 
-    %% Phân hệ chức năng cấp 1
-    ROOT --> F1["1.0 Quản lý Xác thực & Hồ sơ"]:::lvl1
-    ROOT --> F2["2.0 Quản lý Thực đơn & Tồn kho"]:::lvl1
-    ROOT --> F3["3.0 Quản lý Đặt hàng & Xử lý đơn"]:::lvl1
-    ROOT --> F4["4.0 Quản lý Thanh toán & Ưu đãi"]:::lvl1
-    ROOT --> F5["5.0 Quản trị Quầy & Điều phối Pha chế (KDS)"]:::lvl1
-    ROOT --> F6["6.0 Quản trị Vận hành & Tự động hóa"]:::lvl1
+    %% CỘT 2: CÁC PHÂN HỆ CẤP 1
+    ROOT --> F1["1.0 Xác thực & Hồ sơ"]:::lvl1
+    ROOT --> F2["2.0 Thực đơn & Tồn kho"]:::lvl1
+    ROOT --> F3["3.0 Đặt hàng & Xử lý đơn"]:::lvl1
+    ROOT --> F4["4.0 Thanh toán & Ưu đãi"]:::lvl1
+    ROOT --> F5["5.0 Quầy & KDS Pha chế"]:::lvl1
+    ROOT --> F6["6.0 Vận hành & Tự động hóa"]:::lvl1
 
-    %% Phân hệ 1.0
+    %% CỘT 3: CÁC CHỨC NĂNG CON
     F1 --> F11["1.1 Đăng ký tài khoản mới"]:::lvl2
     F1 --> F12["1.2 Đăng nhập & Cấp phát JWT"]:::lvl2
-    F1 --> F13["1.3 Quản lý hồ sơ & Tra cứu điểm tích lũy"]:::lvl2
-    F1 --> F14["1.4 Phân quyền vai trò người dùng (RBAC)"]:::lvl2
+    F1 --> F13["1.3 Hồ sơ & Điểm tích lũy"]:::lvl2
+    F1 --> F14["1.4 Phân quyền vai trò RBAC"]:::lvl2
 
-    %% Phân hệ 2.0
-    F2 --> F21["2.1 Hiển thị thực đơn (Menu Catalog)"]:::lvl2
-    F2 --> F22["2.2 Tùy biến đồ uống (Size S/M/L, Toppings)"]:::lvl2
-    F2 --> F23["2.3 Tra cứu tồn kho & Quản lý giá"]:::lvl2
-    F2 --> F24["2.4 Cập nhật kho qua Optimistic Locking"]:::lvl2
+    F2 --> F21["2.1 Hiển thị thực đơn (Menu)"]:::lvl2
+    F2 --> F22["2.2 Tùy biến Size & Toppings"]:::lvl2
+    F2 --> F23["2.3 Tra cứu tồn kho & Giá"]:::lvl2
+    F2 --> F24["2.4 Trừ kho Optimistic Lock"]:::lvl2
 
-    %% Phân hệ 3.0
-    F3 --> F31["3.1 Quản trị giỏ hàng (Cart Management)"]:::lvl2
-    F3 --> F32["3.2 Khởi tạo đơn hàng (PENDING) & Trừ kho"]:::lvl2
-    F3 --> F33["3.3 Theo dõi chi tiết & Lịch sử đơn hàng"]:::lvl2
-    F3 --> F34["3.4 Hủy đơn hàng & Tự động hoàn kho"]:::lvl2
+    F3 --> F31["3.1 Quản trị giỏ hàng (Cart)"]:::lvl2
+    F3 --> F32["3.2 Khởi tạo đơn PENDING (15p)"]:::lvl2
+    F3 --> F33["3.3 Theo dõi chi tiết & Lịch sử"]:::lvl2
+    F3 --> F34["3.4 Hủy đơn & Tự động hoàn kho"]:::lvl2
 
-    %% Phân hệ 4.0
-    F4 --> F41["4.1 Kiểm tra & Áp dụng mã Voucher"]:::lvl2
-    F4 --> F42["4.2 Xử lý thanh toán đa phương thức (Ví/Thẻ)"]:::lvl2
-    F4 --> F43["4.3 Kiểm soát trùng lặp Idempotency-Key"]:::lvl2
-    F4 --> F44["4.4 Cộng điểm thưởng Loyalty (1đ / 10.000đ)"]:::lvl2
+    F4 --> F41["4.1 Áp dụng mã giảm Voucher"]:::lvl2
+    F4 --> F42["4.2 Thanh toán không tiền mặt"]:::lvl2
+    F4 --> F43["4.3 Idempotency Replay & P2002"]:::lvl2
+    F4 --> F44["4.4 Tích điểm thưởng Loyalty"]:::lvl2
 
-    %% Phân hệ 5.0
-    F5 --> F51["5.1 Hàng đợi đơn hàng chờ chế biến (FIFO)"]:::lvl2
-    F5 --> F52["5.2 Cập nhật chế biến (PAID sang PREPARING)"]:::lvl2
-    F5 --> F53["5.3 Báo hoàn tất món (PREPARING sang READY)"]:::lvl2
-    F5 --> F54["5.4 Bàn giao cho khách (READY sang COMPLETED)"]:::lvl2
+    F5 --> F51["5.1 Hàng đợi KDS (FIFO)"]:::lvl2
+    F5 --> F52["5.2 Nhận chế biến PREPARING"]:::lvl2
+    F5 --> F53["5.3 Hoàn thành món READY"]:::lvl2
+    F5 --> F54["5.4 Giao hàng COMPLETED"]:::lvl2
 
-    %% Phân hệ 6.0
-    F6 --> F61["6.1 Cron dọn dẹp đơn quá hạn (5 phút/lần)"]:::lvl2
-    F6 --> F62["6.2 Cơ chế Lazy-Check Timeout khi tra cứu"]:::lvl2
-    F6 --> F63["6.3 Giám sát trạng thái hệ thống (Health Check)"]:::lvl2
+    F6 --> F61["6.1 Cron dọn đơn quá hạn 15p"]:::lvl2
+    F6 --> F62["6.2 Cơ chế Lazy-Check Timeout"]:::lvl2
+    F6 --> F63["6.3 Giám sát Health Check"]:::lvl2
 ```
 
 ---
@@ -186,41 +181,48 @@ graph TD
     'fontFamily': 'Segoe UI, Arial, sans-serif'
   }
 }}%%
-flowchart TD
+flowchart LR
     %% Định nghĩa các lớp kiểu dáng màu sắc High-Contrast chữ đen
     classDef entity fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
     classDef process fill:#fef3c7,stroke:#1e293b,stroke-width:3px,color:#000000,font-weight:700;
-    classDef systemBox fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#000000;
 
-    %% Tác nhân ngoài (External Entities)
-    ACT_CUST["👤 Khách hàng (Customer)"]:::entity
-    ACT_STAFF["🧑‍🍳 Nhân viên Barista (Staff)"]:::entity
-    ACT_ADMIN["👨‍💼 Quản trị viên (Store Admin)"]:::entity
-    ACT_GATEWAY["💳 Cổng thanh toán (Mock Gateway)"]:::entity
-    ACT_CRON["⏱️ Hệ thống Tự động (Cron Daemon)"]:::entity
+    %% Khối tác nhân người dùng (bên trái)
+    subgraph ENT_LEFT ["NGƯỜI DÙNG TƯƠNG TÁC"]
+        direction TB
+        ACT_CUST["👤 Khách hàng<br>(Customer)"]:::entity
+        ACT_STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / KDS)"]:::entity
+    end
 
     %% Tiến trình mức ngữ cảnh trung tâm
-    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT VÀ THANH TOÁN<br>CÀ PHÊ BREWLITE")):::process
+    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT & THANH TOÁN<br>CÀ PHÊ BREWLITE")):::process
+
+    %% Khối quản trị và hệ thống liên kết (bên phải)
+    subgraph ENT_RIGHT ["QUẢN TRỊ & HỆ THỐNG LIÊN KẾT"]
+        direction TB
+        ACT_ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::entity
+        ACT_GATEWAY["💳 Cổng thanh toán<br>(Mock Gateway)"]:::entity
+        ACT_CRON["⏱️ Hệ thống Tự động<br>(Cron Daemon)"]:::entity
+    end
 
     %% Luồng dữ liệu Khách hàng
-    ACT_CUST -->|"1. Gửi thông tin đăng ký, đăng nhập,<br>giỏ hàng, voucher, yêu cầu thanh toán, hủy đơn"| SYS_MAIN
-    SYS_MAIN -->|"2. Phản hồi Token JWT, danh mục menu,<br>mã đơn #10xx, trạng thái đơn, điểm Loyalty"| ACT_CUST
+    ACT_CUST -->|"1. Đăng ký, đăng nhập,<br>giỏ hàng, thanh toán, hủy"| SYS_MAIN
+    SYS_MAIN -->|"2. Token JWT, Menu,<br>mã đơn #10xx, Loyalty"| ACT_CUST
 
     %% Luồng dữ liệu Nhân viên Barista
-    SYS_MAIN -->|"3. Danh sách đơn chờ pha chế (KDS FIFO),<br>chi tiết món, Size S/M/L, Toppings"| ACT_STAFF
-    ACT_STAFF -->|"4. Cập nhật trạng thái (PREPARING, READY, COMPLETED),<br>lệnh hủy đơn sự cố tại quầy (kèm hoàn kho)"| SYS_MAIN
+    SYS_MAIN -->|"3. Hàng đợi KDS (FIFO),<br>chi tiết Size/Toppings"| ACT_STAFF
+    ACT_STAFF -->|"4. Cập nhật tiến độ chế biến,<br>lệnh hủy quầy kèm hoàn kho"| SYS_MAIN
 
     %% Luồng dữ liệu Quản trị viên
-    ACT_ADMIN -->|"5. Cấu hình sản phẩm, điều chỉnh kho tồn,<br>phân quyền tài khoản RBAC, giám sát đơn"| SYS_MAIN
-    SYS_MAIN -->|"6. Báo cáo trạng thái kho, nhật ký giao dịch,<br>thông tin kiểm toán hệ thống (Audit Logs)"| ACT_ADMIN
+    ACT_ADMIN -->|"5. Cấu hình sản phẩm, giá,<br>kho tồn, quyền RBAC"| SYS_MAIN
+    SYS_MAIN -->|"6. Báo cáo kho, Audit Logs,<br>nhật ký hệ thống"| ACT_ADMIN
 
     %% Luồng dữ liệu Cổng thanh toán
-    SYS_MAIN -->|"7. Dữ liệu giao dịch (Mã đơn, số tiền,<br>phương thức Ví/Thẻ, Idempotency-Key)"| ACT_GATEWAY
-    ACT_GATEWAY -->|"8. Kết quả xác thực giao dịch<br>(SUCCESS / FAILED)"| SYS_MAIN
+    SYS_MAIN -->|"7. Lệnh thanh toán (Mã đơn,<br>số tiền, Idempotency-Key)"| ACT_GATEWAY
+    ACT_GATEWAY -->|"8. Kết quả thanh toán<br>(SUCCESS / FAILED)"| SYS_MAIN
 
     %% Luồng dữ liệu Cron Daemon
-    ACT_CRON -->|"9. Tín hiệu trigger định kỳ (mỗi 5 phút)"| SYS_MAIN
-    SYS_MAIN -->|"10. Kết quả thu hồi kho & hủy đơn quá hạn 15p"| ACT_CRON
+    ACT_CRON -->|"9. Tín hiệu trigger định kỳ<br>(mỗi 5 phút)"| SYS_MAIN
+    SYS_MAIN -->|"10. Báo cáo dọn đơn quá hạn<br>& hoàn trả tồn kho"| ACT_CRON
 ```
 
 ---
@@ -264,15 +266,15 @@ flowchart TD
     'fontFamily': 'Segoe UI, Arial, sans-serif'
   }
 }}%%
-flowchart TB
-    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast
+flowchart LR
+    %% Định nghĩa các lớp kiểu dáng chuẩn High-Contrast chữ đen
     classDef entityBox fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
     classDef processBubble fill:#fef3c7,stroke:#1e293b,stroke-width:2.5px,color:#000000,font-weight:600;
     classDef storeBox fill:#f3e8ff,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
 
-    %% TẦNG 1: TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)
-    subgraph TIER_ENTITIES ["TẦNG 1: TÁC NHÂN NGOÀI (EXTERNAL ENTITIES)"]
-        direction LR
+    %% CỘT 1: CÁC TÁC NHÂN NGOÀI (EXTERNAL ENTITIES - CÂN BẰNG LV0)
+    subgraph TIER_ENTITIES ["CỘT 1: TÁC NHÂN NGOÀI (ENTITIES)"]
+        direction TB
         CUST["👤 Khách hàng<br>(Customer)"]:::entityBox
         STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / KDS)"]:::entityBox
         ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::entityBox
@@ -280,8 +282,9 @@ flowchart TB
         CRON["⏱️ Hệ thống Tự động<br>(Cron Scheduler)"]:::entityBox
     end
 
-    %% TẦNG 2: CÁC TIẾN TRÌNH XỬ LÝ CỐT LÕI (CORE PROCESSES)
-    subgraph TIER_PROCESSES ["TẦNG 2: TIẾN TRÌNH XỬ LÝ NGHIỆP VỤ (PROCESSES)"]
+    %% CỘT 2: TIẾN TRÌNH XỬ LÝ CỐT LÕI (CORE PROCESSES)
+    subgraph TIER_PROCESSES ["CỘT 2: TIẾN TRÌNH XỬ LÝ (PROCESSES)"]
+        direction TB
         P1(("1.0 Xác thực &<br>Quản lý Tài khoản")):::processBubble
         P2(("2.0 Quản lý Thực đơn<br>& Tra cứu Tồn kho")):::processBubble
         P3(("3.0 Xử lý Đặt hàng<br>& Trừ kho Optimistic")):::processBubble
@@ -290,9 +293,9 @@ flowchart TB
         P6(("6.0 Tự động Dọn dẹp<br>& Hoàn kho Đơn quá hạn")):::processBubble
     end
 
-    %% TẦNG 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)
-    subgraph TIER_STORES ["TẦNG 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)"]
-        direction LR
+    %% CỘT 3: KHO DỮ LIỆU CHUẨN HÓA (DATA STORES)
+    subgraph TIER_STORES ["CỘT 3: KHO DỮ LIỆU (DATA STORES)"]
+        direction TB
         D1[("[(D1)]<br>users")]:::storeBox
         D2[("[(D2)]<br>products")]:::storeBox
         D3[("[(D3)]<br>orders")]:::storeBox
@@ -302,44 +305,44 @@ flowchart TB
     end
 
     %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 1.0 (Auth & Account)
-    CUST <-->|"1. Đăng ký / Đăng nhập / Token"| P1
-    ADMIN -->|"Cấu hình RBAC / Khóa tài khoản"| P1
-    P1 <-->|"Ghi nhận / Đọc thông tin User, PasswordHash"| D1
+    CUST <-->|"1. Đăng ký / Đăng nhập<br>Cấp phát JWT Token"| P1
+    ADMIN -->|"Cấu hình RBAC<br>Khóa tài khoản"| P1
+    P1 <-->|"Ghi nhận / Đọc User<br>PasswordHash"| D1
 
     %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 2.0 (Menu & Catalog)
-    CUST <-->|"2. Tra cứu danh mục Menu & Đồ uống"| P2
-    ADMIN <-->|"Cập nhật giá, thêm món, điều chỉnh kho"| P2
-    P2 <-->|"Đọc danh mục / Cập nhật sản phẩm & kho"| D2
+    CUST <-->|"2. Tra cứu Menu<br>Danh mục đồ uống"| P2
+    ADMIN <-->|"Cập nhật giá & món<br>Điều chỉnh kho"| P2
+    P2 <-->|"Đọc danh mục<br>Cập nhật sản phẩm & kho"| D2
 
     %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 3.0 (Ordering & Stock Allocation)
-    CUST -->|"3. Gửi giỏ hàng & Mã Voucher"| P3
-    P3 -->|"Phản hồi mã đơn #10xx & Hạn 15p"| CUST
-    P3 -->|"Xác thực voucher & Đọc minOrder"| D6
-    P3 <-->|"Trừ kho Optimistic (stock -= qty, ver += 1)"| D2
-    P3 -->|"Tạo đơn PENDING (expiresAt = now + 15m)"| D3
-    P3 -->|"Lưu snapshot danh sách món, size, topping"| D4
+    CUST -->|"3. Gửi giỏ hàng<br>& Mã Voucher"| P3
+    P3 -->|"Phản hồi mã đơn #10xx<br>Hạn thanh toán 15p"| CUST
+    P3 -->|"Xác thực voucher<br>Đọc minOrder"| D6
+    P3 <-->|"Trừ kho Optimistic<br>(stock -= qty, ver += 1)"| D2
+    P3 -->|"Tạo đơn PENDING<br>(expiresAt = now + 15m)"| D3
+    P3 -->|"Snapshot món,<br>size, topping"| D4
 
     %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 4.0 (Payments & Idempotency)
-    CUST -->|"4. Yêu cầu thanh toán (Idempotency-Key)"| P4
-    P4 -->|"Kết quả thanh toán & Điểm Loyalty"| CUST
-    P4 <-->|"Gửi lệnh thanh toán / Nhận kết quả GD"| GATEWAY
-    P4 <-->|"Kiểm tra trùng khóa / Ghi nhận Payment"| D5
-    P4 -->|"Cập nhật đơn PAID (hoặc PAYMENT_FAILED)"| D3
-    P4 -->|"Tăng usedCount voucher thành công"| D6
-    P4 -->|"Cộng điểm Loyalty (1đ / 10k)"| D1
-    P4 -.->|"Nếu thanh toán lỗi: Tự động hoàn kho"| D2
+    CUST -->|"4. Yêu cầu thanh toán<br>(Idempotency-Key)"| P4
+    P4 -->|"Kết quả thanh toán<br>& Điểm Loyalty"| CUST
+    P4 <-->|"Gửi lệnh thanh toán<br>Nhận kết quả GD"| GATEWAY
+    P4 <-->|"Kiểm tra trùng khóa<br>Ghi nhận Payment"| D5
+    P4 -->|"Cập nhật PAID<br>(hoặc PAYMENT_FAILED)"| D3
+    P4 -->|"Tăng usedCount<br>voucher thành công"| D6
+    P4 -->|"Cộng điểm Loyalty<br>(1đ / 10.000đ)"| D1
+    P4 -.->|"Nếu thanh toán lỗi:<br>Tự động hoàn kho"| D2
 
     %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 5.0 (Barista KDS & Fulfillment)
-    STAFF <-->|"5. Nhận hàng đợi KDS (FIFO) / Cập nhật tiến độ"| P5
-    ADMIN -->|"Giám sát hàng đợi & Can thiệp đơn KDS"| P5
-    P5 <-->|"Đọc đơn PAID/PREPARING/READY & Cập nhật trạng thái"| D3
-    P5 -->|"Đọc chi tiết món, size, topping"| D4
-    P5 -.->|"Hủy đơn sự cố tại quầy: Hoàn kho sản phẩm"| D2
+    STAFF <-->|"5. Nhận hàng đợi FIFO<br>Cập nhật tiến độ KDS"| P5
+    ADMIN -->|"Giám sát hàng đợi<br>Can thiệp đơn KDS"| P5
+    P5 <-->|"Đọc đơn PAID/PREP/READY<br>Cập nhật trạng thái"| D3
+    P5 -->|"Đọc chi tiết món,<br>size, topping"| D4
+    P5 -.->|"Hủy sự cố tại quầy:<br>Hoàn kho sản phẩm"| D2
 
     %% CÁC LUỒNG DỮ LIỆU PHÂN HỆ 6.0 (Cron Cleanup & Timeout)
-    CRON -->|"6. Kích hoạt dọn dẹp định kỳ (5 phút/lần)"| P6
-    P6 <-->|"Quét đơn PENDING quá hạn & Chuyển CANCELLED"| D3
-    P6 -->|"Tự động hoàn trả tồn kho (stock += qty)"| D2
+    CRON -->|"6. Kích hoạt định kỳ<br>(5 phút/lần)"| P6
+    P6 <-->|"Quét đơn PENDING quá hạn<br>Chuyển CANCELLED"| D3
+    P6 -->|"Tự động hoàn trả<br>tồn kho (stock += qty)"| D2
 ```
 
 ---
@@ -1159,7 +1162,7 @@ Sơ đồ máy trạng thái biểu diễn chính xác cấu trúc định nghĩ
   }
 }}%%
 stateDiagram-v2
-    direction LR
+    direction TB
 
     [*] --> PENDING : 1. Khởi tạo đơn (POST /api/orders)
 

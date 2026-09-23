@@ -13,38 +13,45 @@
     'fontFamily': 'Segoe UI, Arial, sans-serif'
   }
 }}%%
-flowchart TD
+flowchart LR
     %% Định nghĩa các lớp kiểu dáng màu sắc High-Contrast chữ đen
     classDef entity fill:#e0f2fe,stroke:#1e293b,stroke-width:2px,color:#000000,font-weight:600;
     classDef process fill:#fef3c7,stroke:#1e293b,stroke-width:3px,color:#000000,font-weight:700;
-    classDef systemBox fill:#ffffff,stroke:#0f172a,stroke-width:2px,color:#000000;
 
-    %% Tác nhân ngoài (External Entities)
-    ACT_CUST["👤 Khách hàng (Customer)"]:::entity
-    ACT_STAFF["🧑‍🍳 Nhân viên Barista (Staff)"]:::entity
-    ACT_ADMIN["👨‍💼 Quản trị viên (Store Admin)"]:::entity
-    ACT_GATEWAY["💳 Cổng thanh toán (Mock Gateway)"]:::entity
-    ACT_CRON["⏱️ Hệ thống Tự động (Cron Daemon)"]:::entity
+    %% Khối tác nhân người dùng (bên trái)
+    subgraph ENT_LEFT ["NGƯỜI DÙNG TƯƠNG TÁC"]
+        direction TB
+        ACT_CUST["👤 Khách hàng<br>(Customer)"]:::entity
+        ACT_STAFF["🧑‍🍳 Nhân viên Barista<br>(Staff / KDS)"]:::entity
+    end
 
     %% Tiến trình mức ngữ cảnh trung tâm
-    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT VÀ THANH TOÁN<br>CÀ PHÊ BREWLITE")):::process
+    SYS_MAIN(("0.0 HỆ THỐNG ĐẶT & THANH TOÁN<br>CÀ PHÊ BREWLITE")):::process
+
+    %% Khối quản trị và hệ thống liên kết (bên phải)
+    subgraph ENT_RIGHT ["QUẢN TRỊ & HỆ THỐNG LIÊN KẾT"]
+        direction TB
+        ACT_ADMIN["👨‍💼 Quản trị viên<br>(Store Admin)"]:::entity
+        ACT_GATEWAY["💳 Cổng thanh toán<br>(Mock Gateway)"]:::entity
+        ACT_CRON["⏱️ Hệ thống Tự động<br>(Cron Daemon)"]:::entity
+    end
 
     %% Luồng dữ liệu Khách hàng
-    ACT_CUST -->|"1. Gửi thông tin đăng ký, đăng nhập,<br>giỏ hàng, voucher, yêu cầu thanh toán, hủy đơn"| SYS_MAIN
-    SYS_MAIN -->|"2. Phản hồi Token JWT, danh mục menu,<br>mã đơn #10xx, trạng thái đơn, điểm Loyalty"| ACT_CUST
+    ACT_CUST -->|"1. Đăng ký, đăng nhập,<br>giỏ hàng, thanh toán, hủy"| SYS_MAIN
+    SYS_MAIN -->|"2. Token JWT, Menu,<br>mã đơn #10xx, Loyalty"| ACT_CUST
 
     %% Luồng dữ liệu Nhân viên Barista
-    SYS_MAIN -->|"3. Danh sách đơn chờ pha chế (KDS FIFO),<br>chi tiết món, Size S/M/L, Toppings"| ACT_STAFF
-    ACT_STAFF -->|"4. Cập nhật trạng thái (PREPARING, READY, COMPLETED),<br>lệnh hủy đơn sự cố tại quầy (kèm hoàn kho)"| SYS_MAIN
+    SYS_MAIN -->|"3. Hàng đợi KDS (FIFO),<br>chi tiết Size/Toppings"| ACT_STAFF
+    ACT_STAFF -->|"4. Cập nhật tiến độ chế biến,<br>lệnh hủy quầy kèm hoàn kho"| SYS_MAIN
 
     %% Luồng dữ liệu Quản trị viên
-    ACT_ADMIN -->|"5. Cấu hình sản phẩm, điều chỉnh kho tồn,<br>phân quyền tài khoản RBAC, giám sát đơn"| SYS_MAIN
-    SYS_MAIN -->|"6. Báo cáo trạng thái kho, nhật ký giao dịch,<br>thông tin kiểm toán hệ thống (Audit Logs)"| ACT_ADMIN
+    ACT_ADMIN -->|"5. Cấu hình sản phẩm, giá,<br>kho tồn, quyền RBAC"| SYS_MAIN
+    SYS_MAIN -->|"6. Báo cáo kho, Audit Logs,<br>nhật ký hệ thống"| ACT_ADMIN
 
     %% Luồng dữ liệu Cổng thanh toán
-    SYS_MAIN -->|"7. Dữ liệu giao dịch (Mã đơn, số tiền,<br>phương thức Ví/Thẻ, Idempotency-Key)"| ACT_GATEWAY
-    ACT_GATEWAY -->|"8. Kết quả xác thực giao dịch<br>(SUCCESS / FAILED)"| SYS_MAIN
+    SYS_MAIN -->|"7. Lệnh thanh toán (Mã đơn,<br>số tiền, Idempotency-Key)"| ACT_GATEWAY
+    ACT_GATEWAY -->|"8. Kết quả thanh toán<br>(SUCCESS / FAILED)"| SYS_MAIN
 
     %% Luồng dữ liệu Cron Daemon
-    ACT_CRON -->|"9. Tín hiệu trigger định kỳ (mỗi 5 phút)"| SYS_MAIN
-    SYS_MAIN -->|"10. Kết quả thu hồi kho & hủy đơn quá hạn 15p"| ACT_CRON
+    ACT_CRON -->|"9. Tín hiệu trigger định kỳ<br>(mỗi 5 phút)"| SYS_MAIN
+    SYS_MAIN -->|"10. Báo cáo dọn đơn quá hạn<br>& hoàn trả tồn kho"| ACT_CRON
