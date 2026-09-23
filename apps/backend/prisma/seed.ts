@@ -116,7 +116,14 @@ async function main() {
     if (!existing) {
       await prisma.product.create({ data: p });
     } else {
-      await prisma.product.update({ where: { id: existing.id }, data: p });
+      // Giữ nguyên stock và version hiện tại nếu sản phẩm đã tồn tại trong CSDL,
+      // chỉ cập nhật thông tin thực đơn (tên, giá, mô tả, ảnh).
+      // Tránh việc seed đè làm reset tồn kho của đơn hàng thực tế theo ADR-007.
+      const { stock, version, ...catalogData } = p;
+      await prisma.product.update({
+        where: { id: existing.id },
+        data: catalogData,
+      });
     }
   }
 

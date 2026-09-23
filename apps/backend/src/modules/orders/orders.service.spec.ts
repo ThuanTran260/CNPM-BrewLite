@@ -99,6 +99,68 @@ describe('OrdersService', () => {
       expect(result.code).toBe('#1042');
       expect(result.status).toBe(OrderStatus.PENDING);
     });
+
+    it('nên từ chối khi đặt nhiều size của cùng 1 món mà tổng số lượng vượt quá tồn kho', async () => {
+      prisma.product.findMany.mockResolvedValueOnce([
+        {
+          id: 'prod-1',
+          name: 'Americano',
+          price: 40000,
+          stock: 3,
+          version: 0,
+        },
+      ]);
+
+      await expect(
+        service.createOrder('user-1', {
+          items: [
+            { productId: 'prod-1', size: Size.S, toppings: [], qty: 2 },
+            { productId: 'prod-1', size: Size.L, toppings: [], qty: 2 }, // Tổng 4 > tồn kho 3
+          ],
+        }),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('nên gộp trừ kho chính xác khi đặt nhiều size/topping của cùng 1 món', async () => {
+      prisma.product.findMany.mockResolvedValueOnce([
+        {
+          id: 'prod-1',
+          name: 'Americano',
+          price: 40000,
+          stock: 10,
+          version: 0,
+        },
+      ]);
+
+      prisma.product.updateMany = jest.fn().mockResolvedValueOnce({ count: 1 });
+      prisma.order.create.mockResolvedValueOnce({
+        id: 'order-1',
+        code: '#1043',
+        status: OrderStatus.PENDING,
+        total: 90000,
+      });
+
+      const result = await service.createOrder('user-1', {
+        items: [
+          { productId: 'prod-1', size: Size.S, toppings: [], qty: 1 },
+          { productId: 'prod-1', size: Size.L, toppings: [], qty: 2 }, // Tổng 3
+        ],
+      });
+
+      expect(result.code).toBe('#1043');
+      expect(prisma.product.updateMany).toHaveBeenCalledTimes(1);
+      expect(prisma.product.updateMany).toHaveBeenCalledWith({
+        where: {
+          id: 'prod-1',
+          version: 0,
+          stock: { gte: 3 },
+        },
+        data: {
+          stock: { decrement: 3 },
+          version: { increment: 1 },
+        },
+      });
+    });
   });
 
   describe('cancelOrder', () => {

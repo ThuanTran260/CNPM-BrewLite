@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle, Check, Coffee, Plus, X } from 'lucide-react';
+import { AlertCircle, Check, Coffee, Plus, RefreshCw, X } from 'lucide-react';
 import { productsApi } from '../../services/api';
 import type { Product } from '../../types';
 
@@ -86,6 +86,28 @@ export default function MenuStockTab() {
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         'Thêm món mới thất bại. Vui lòng thử lại sau.';
       setFormError(message);
+    },
+  });
+
+  const syncMutation = useMutation({
+    mutationFn: productsApi.syncInventory,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      setEdits({});
+      setRowError({});
+      const detail = res.adjustedProducts?.length
+        ? ` (${res.adjustedProducts.map((p) => `${p.name}: ${p.oldStock} → ${p.newStock}`).join(', ')})`
+        : ' (Tất cả sản phẩm đã khớp đúng số lượng đơn hàng)';
+      setNotice({
+        type: 'success',
+        message: `${res.message}${detail}`,
+      });
+    },
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Đồng bộ tồn kho thất bại. Vui lòng thử lại sau.';
+      setNotice({ type: 'error', message });
     },
   });
 
@@ -194,18 +216,32 @@ export default function MenuStockTab() {
         <p className="text-xs font-bold text-ink-muted uppercase tracking-wider">
           Tổng {products.length} món trong thực đơn
         </p>
-        <button
-          type="button"
-          onClick={() => {
-            setForm(EMPTY_FORM);
-            setFormError(null);
-            setShowAddModal(true);
-          }}
-          className="btn-pill px-4 py-2 bg-primary-accent hover:bg-primary-hover text-white text-xs font-bold shadow-md inline-flex items-center space-x-1.5"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Thêm món mới</span>
-        </button>
+        <div className="flex items-center space-x-2">
+          <button
+            type="button"
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="btn-pill px-3.5 py-2 bg-white hover:bg-canvas text-house border border-ceramic text-xs font-bold shadow-sm inline-flex items-center space-x-1.5 transition-colors disabled:opacity-50"
+            title="Đồng bộ lại tồn kho dựa trên lịch sử đơn hàng thực tế"
+          >
+            <RefreshCw
+              className={`w-3.5 h-3.5 text-primary-accent ${syncMutation.isPending ? 'animate-spin' : ''}`}
+            />
+            <span>{syncMutation.isPending ? 'Đang đồng bộ...' : 'Đồng bộ tồn kho'}</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setForm(EMPTY_FORM);
+              setFormError(null);
+              setShowAddModal(true);
+            }}
+            className="btn-pill px-4 py-2 bg-primary-accent hover:bg-primary-hover text-white text-xs font-bold shadow-md inline-flex items-center space-x-1.5"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Thêm món mới</span>
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto rounded-2xl border border-ceramic">

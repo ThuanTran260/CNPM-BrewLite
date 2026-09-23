@@ -23,6 +23,13 @@ export class ProductsController {
 
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
+  @Post('sync-inventory')
+  async syncInventory() {
+    return this.productsService.syncInventory();
+  }
+
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
   @Post()
   async createProduct(@Body() dto: CreateProductDto) {
     return this.productsService.createProduct(dto);

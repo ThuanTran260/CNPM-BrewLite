@@ -25,6 +25,10 @@ const mockPrismaService = {
     create: jest.fn(),
     update: jest.fn(),
   },
+  orderItem: {
+    findMany: jest.fn().mockResolvedValue([]),
+  },
+  $transaction: jest.fn((cb) => cb(mockPrismaService)),
 };
 
 describe('ProductsService', () => {
@@ -171,6 +175,70 @@ describe('ProductsService', () => {
       await expect(
         service.updateProduct('invalid-id', { stock: 5 }),
       ).rejects.toThrow(NotFoundException);
+      expect(prisma.product.update).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('syncInventory', () => {
+    it('nên đồng bộ lại tồn kho dựa trên lịch sử đơn hàng đã đặt', async () => {
+      const prodAmericano = {
+        id: 'prod-americano',
+        name: 'Americano Cổ Điển',
+        stock: 100, // Tồn kho bị reset về 100 do seed
+        version: 0,
+      };
+      const prodSaigon = {
+        id: 'prod-saigon',
+        name: 'Cà phê Sữa Đá Sài Gòn',
+        stock: 99, // Đã khớp
+        version: 1,
+      };
+
+      prisma.product.findMany.mockResolvedValueOnce([prodAmericano, prodSaigon]);
+      // Americano có 2 ly trong đơn active/completed, Saigon có 1 ly
+      prisma.orderItem.findMany.mockResolvedValueOnce([
+        { productId: 'prod-americano', qty: 1 },
+        { productId: 'prod-americano', qty: 1 },
+        { productId: 'prod-saigon', qty: 1 },
+      ]);
+      prisma.product.update.mockResolvedValue({});
+
+      const result = await service.syncInventory();
+
+      expect(result.adjustedCount).toBe(1); // Chỉ Americano cần điều chỉnh từ 100 -> 98
+      expect(result.adjustedProducts[0]).toEqual({
+        id: 'prod-americano',
+        name: 'Americano Cổ Điển',
+        oldStock: 100,
+        newStock: 98,
+        consumed: 2,
+      });
+
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'prod-americano' },
+        data: {
+          stock: 98,
+          version: { increment: 1 },
+        },
+      });
+    });
+
+    it('không điều chỉnh gì nếu tồn kho đã khớp đúng số lượng', async () => {
+      const prodInSync = {
+        id: 'prod-1',
+        name: 'Americano Cổ Điển',
+        stock: 98,
+        version: 2,
+      };
+
+      prisma.product.findMany.mockResolvedValueOnce([prodInSync]);
+      prisma.orderItem.findMany.mockResolvedValueOnce([
+        { productId: 'prod-1', qty: 2 },
+      ]);
+
+      const result = await service.syncInventory();
+
+      expect(result.adjustedCount).toBe(0);
       expect(prisma.product.update).not.toHaveBeenCalled();
     });
   });

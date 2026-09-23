@@ -41,6 +41,21 @@ export const productsApi = {
     const response = await apiClient.patch<Product>(`/products/${id}`, data);
     return response.data;
   },
+
+  syncInventory: async (): Promise<{
+    message: string;
+    adjustedCount: number;
+    adjustedProducts: Array<{
+      id: string;
+      name: string;
+      oldStock: number;
+      newStock: number;
+      consumed: number;
+    }>;
+  }> => {
+    const response = await apiClient.post('/products/sync-inventory');
+    return response.data;
+  },
 };
 
 export const authApi = {

@@ -35,7 +35,28 @@ export class OrdersService {
 
     const productMap = new Map(dbProducts.map((p) => [p.id, p]));
 
-    // 2. Tính toán chi phí đơn hàng
+    // 2. Tính toán chi phí đơn hàng và kiểm tra tổng tồn kho theo từng món
+    const totalQtyByProductId = new Map<string, number>();
+    for (const item of dto.items) {
+      totalQtyByProductId.set(
+        item.productId,
+        (totalQtyByProductId.get(item.productId) || 0) + item.qty,
+      );
+    }
+
+    for (const [productId, totalQty] of totalQtyByProductId.entries()) {
+      const product = productMap.get(productId);
+      if (!product) {
+        throw new NotFoundException(`Không tìm thấy sản phẩm có ID: ${productId}`);
+      }
+
+      if (product.stock < totalQty) {
+        throw new ConflictException(
+          `Sản phẩm [${product.name}] không đủ số lượng tồn kho (chỉ còn ${product.stock} ly)`,
+        );
+      }
+    }
+
     let subtotal = 0;
     const computedItems: Array<{
       productId: string;
@@ -49,17 +70,7 @@ export class OrdersService {
     }> = [];
 
     for (const item of dto.items) {
-      const product = productMap.get(item.productId);
-      if (!product) {
-        throw new NotFoundException(`Không tìm thấy sản phẩm có ID: ${item.productId}`);
-      }
-
-      if (product.stock < item.qty) {
-        throw new ConflictException(
-          `Sản phẩm [${product.name}] không đủ số lượng tồn kho (chỉ còn ${product.stock} ly)`,
-        );
-      }
-
+      const product = productMap.get(item.productId)!;
       const unitPrice = calculateItemUnitPrice(product.price, item.size, item.toppings);
       const lineTotal = unitPrice * item.qty;
       subtotal += lineTotal;
@@ -103,16 +114,17 @@ export class OrdersService {
 
     // 4. Mở Database Transaction với Optimistic Locking
     const order = await this.prisma.$transaction(async (tx) => {
-      // Trừ kho có điều kiện (version check)
-      for (const item of computedItems) {
+      // Trừ kho có điều kiện (version check theo từng món duy nhất để tránh race giữa các dòng cùng món)
+      for (const [productId, totalQty] of totalQtyByProductId.entries()) {
+        const product = productMap.get(productId)!;
         const updateResult = await tx.product.updateMany({
           where: {
-            id: item.productId,
-            version: item.curVersion,
-            stock: { gte: item.qty },
+            id: productId,
+            version: product.version,
+            stock: { gte: totalQty },
           },
           data: {
-            stock: { decrement: item.qty },
+            stock: { decrement: totalQty },
             version: { increment: 1 },
           },
         });
@@ -120,7 +132,7 @@ export class OrdersService {
         // Nếu số dòng update = 0 nghĩa là có race condition (version đã bị thay đổi bởi người khác)
         if (updateResult.count === 0) {
           throw new ConflictException(
-            `Sản phẩm [${item.productName}] đã có thay đổi tồn kho hoặc vừa hết hàng. Vui lòng thử lại.`,
+            `Sản phẩm [${product.name}] đã có thay đổi tồn kho hoặc vừa hết hàng. Vui lòng thử lại.`,
           );
         }
       }
