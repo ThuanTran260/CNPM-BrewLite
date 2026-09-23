@@ -31,7 +31,7 @@ export default function LoginPage() {
     setLoading(true);
 
     try {
-      const data = await authApi.login({ email, password });
+      const data = await authApi.login({ email: email.trim(), password });
       localStorage.setItem('brewlite_token', data.accessToken);
       localStorage.setItem('brewlite_user_email', data.user.email);
       localStorage.setItem('brewlite_user_role', data.user.role);
@@ -106,6 +106,11 @@ export default function LoginPage() {
                 <input
                   type="email"
                   required
+                  name="email"
+                  autoComplete="username"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck={false}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="name@example.com"
@@ -125,6 +130,8 @@ export default function LoginPage() {
                 <input
                   type="password"
                   required
+                  name="password"
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••••"
