@@ -199,6 +199,53 @@ describe('OrdersService', () => {
         data: { stock: { increment: 2 }, version: { increment: 1 } },
       });
     });
+
+    it('không được hoàn kho lần 2 nếu đơn đã ở trạng thái PAYMENT_FAILED', async () => {
+      prisma.order.findUnique.mockResolvedValueOnce({
+        id: 'order-failed',
+        userId: 'user-1',
+        status: OrderStatus.PAYMENT_FAILED,
+        items: [{ productId: 'prod-1', qty: 2 }],
+      });
+
+      prisma.order.update.mockResolvedValueOnce({
+        id: 'order-failed',
+        status: OrderStatus.CANCELLED,
+      });
+
+      const result = await service.cancelOrder('user-1', Role.CUSTOMER, 'order-failed');
+
+      expect(result.status).toBe(OrderStatus.CANCELLED);
+      // Tồn kho đã được hoàn khi payment thất bại, cancelOrder tuyệt đối không gọi update kho
+      expect(prisma.product.update).not.toHaveBeenCalled();
+    });
+
+    it('nên gộp hoàn kho theo productId khi đơn có nhiều size của cùng 1 món', async () => {
+      prisma.order.findUnique.mockResolvedValueOnce({
+        id: 'order-multi',
+        userId: 'user-1',
+        status: OrderStatus.PENDING,
+        items: [
+          { productId: 'prod-1', qty: 1 },
+          { productId: 'prod-1', qty: 2 },
+        ],
+      });
+
+      prisma.product.update.mockResolvedValueOnce({});
+      prisma.order.update.mockResolvedValueOnce({
+        id: 'order-multi',
+        status: OrderStatus.CANCELLED,
+      });
+
+      const result = await service.cancelOrder('user-1', Role.CUSTOMER, 'order-multi');
+
+      expect(result.status).toBe(OrderStatus.CANCELLED);
+      expect(prisma.product.update).toHaveBeenCalledTimes(1);
+      expect(prisma.product.update).toHaveBeenCalledWith({
+        where: { id: 'prod-1' },
+        data: { stock: { increment: 3 }, version: { increment: 1 } },
+      });
+    });
   });
 
   describe('createOrder (owner lock mã RW-)', () => {

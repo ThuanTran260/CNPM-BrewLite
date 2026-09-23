@@ -39,12 +39,20 @@ export class OrdersCleanupService {
         assertTransition(order.status, OrderStatus.CANCELLED);
 
         await this.prisma.$transaction(async (tx) => {
-          // 1. Hoàn lại số lượng tồn kho cho các sản phẩm
+          // 1. Hoàn lại số lượng tồn kho cho các sản phẩm (gộp theo productId)
+          const totalQtyByProductId = new Map<string, number>();
           for (const item of order.items) {
+            totalQtyByProductId.set(
+              item.productId,
+              (totalQtyByProductId.get(item.productId) || 0) + item.qty,
+            );
+          }
+
+          for (const [productId, totalQty] of totalQtyByProductId.entries()) {
             await tx.product.update({
-              where: { id: item.productId },
+              where: { id: productId },
               data: {
-                stock: { increment: item.qty },
+                stock: { increment: totalQty },
                 version: { increment: 1 },
               },
             });

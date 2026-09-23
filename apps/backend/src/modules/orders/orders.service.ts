@@ -223,15 +223,26 @@ export class OrdersService {
 
     // Transaction cập nhật CANCELLED và hoàn trả tồn kho
     const cancelledOrder = await this.prisma.$transaction(async (tx) => {
-      // Hoàn kho
-      for (const item of order.items) {
-        await tx.product.update({
-          where: { id: item.productId },
-          data: {
-            stock: { increment: item.qty },
-            version: { increment: 1 },
-          },
-        });
+      // Chỉ hoàn kho nếu đơn hàng đang chiếm giữ tồn kho (PENDING hoặc PAID).
+      // Đối với đơn PAYMENT_FAILED, tồn kho đã được hoàn tự động lúc thanh toán thất bại, tuyệt đối không hoàn lần 2.
+      if (order.status !== OrderStatus.PAYMENT_FAILED) {
+        const totalQtyByProductId = new Map<string, number>();
+        for (const item of order.items) {
+          totalQtyByProductId.set(
+            item.productId,
+            (totalQtyByProductId.get(item.productId) || 0) + item.qty,
+          );
+        }
+
+        for (const [productId, totalQty] of totalQtyByProductId.entries()) {
+          await tx.product.update({
+            where: { id: productId },
+            data: {
+              stock: { increment: totalQty },
+              version: { increment: 1 },
+            },
+          });
+        }
       }
 
       return tx.order.update({
@@ -243,7 +254,7 @@ export class OrdersService {
       });
     });
 
-    this.logger.log(`Order ${order.code} cancelled and restocked by user ${userId}`);
+    this.logger.log(`Order ${order.code} cancelled (restocked: ${order.status !== OrderStatus.PAYMENT_FAILED}) by user ${userId}`);
     return cancelledOrder;
   }
 
@@ -333,11 +344,19 @@ export class OrdersService {
     if (!order || order.status !== OrderStatus.PENDING) return order;
 
     return this.prisma.$transaction(async (tx) => {
+      const totalQtyByProductId = new Map<string, number>();
       for (const item of order.items) {
+        totalQtyByProductId.set(
+          item.productId,
+          (totalQtyByProductId.get(item.productId) || 0) + item.qty,
+        );
+      }
+
+      for (const [productId, totalQty] of totalQtyByProductId.entries()) {
         await tx.product.update({
-          where: { id: item.productId },
+          where: { id: productId },
           data: {
-            stock: { increment: item.qty },
+            stock: { increment: totalQty },
             version: { increment: 1 },
           },
         });

@@ -4,6 +4,15 @@ import { PrismaService } from '../prisma/prisma.service';
 import { SIZE_PRICES, TOPPING_PRICES } from '../../common/constants/drink-options';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+export const STANDARD_CATALOG_BASE_STOCK: Record<string, number> = {
+  'Cà phê Sữa Đá Sài Gòn': 100,
+  'Americano Cổ Điển': 100,
+  'Cappuccino Bọt Sữa Mịn': 100,
+  'Trà Đào Cam Sả Tươi': 100,
+  'Bạc Xỉu Sữa Tươi Kem Béo': 100,
+  'Trà Sữa Oolong Nướng': 100,
+  'Cà phê Giới hạn (Limited Cold Brew)': 1,
+};
 
 @Injectable()
 export class ProductsService {
@@ -134,8 +143,10 @@ export class ProductsService {
       );
     }
 
+
     // 4. Đối chiếu tồn kho lý thuyết (Base Stock - Consumed)
-    // Quy chuẩn base stock mặc định: 1 cho sản phẩm Limited/Giới hạn, 100 cho các món tiêu chuẩn
+    // Đối với các món trong thực đơn chuẩn mẫu: đối chiếu với dung lượng gốc chuẩn (100 món thường, 1 món Limited).
+    // Đối với món tùy chỉnh do Admin tự tạo: bảo toàn tồn kho do người quản trị cấu hình, tránh ghi đè tùy tiện về 100.
     const adjustedProducts: Array<{
       id: string;
       name: string;
@@ -146,8 +157,21 @@ export class ProductsService {
 
     await this.prisma.$transaction(async (tx) => {
       for (const p of products) {
+        const isStandard = Object.prototype.hasOwnProperty.call(STANDARD_CATALOG_BASE_STOCK, p.name);
         const isLimited = p.name.includes('Limited') || p.name.includes('Giới hạn');
-        const baseStock = isLimited ? 1 : 100;
+        
+        let baseStock: number;
+        if (isStandard) {
+          baseStock = STANDARD_CATALOG_BASE_STOCK[p.name];
+        } else if (isLimited) {
+          baseStock = 1;
+        } else {
+          // Món tùy chỉnh không thuộc thực đơn mẫu gốc:
+          // Nếu chưa có đơn nào, bảo toàn nguyên vẹn tồn kho hiện tại do Admin thiết lập.
+          // Nếu có đơn hàng, chỉ điều chỉnh nếu tồn kho bị lệch so với (tồn kho hiện tại + consumed).
+          continue;
+        }
+
         const consumed = consumedMap.get(p.id) || 0;
         const newStock = Math.max(0, baseStock - consumed);
 

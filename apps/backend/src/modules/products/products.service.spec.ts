@@ -241,6 +241,23 @@ describe('ProductsService', () => {
       expect(result.adjustedCount).toBe(0);
       expect(prisma.product.update).not.toHaveBeenCalled();
     });
+
+    it('không tự ý ghi đè tồn kho của món tùy chỉnh do Admin tự tạo về 100', async () => {
+      const customProd = {
+        id: 'custom-prod-1',
+        name: 'Bánh Mì Chảo Đặc Biệt',
+        stock: 25, // Tồn kho ban đầu do admin cấu hình là 25
+        version: 0,
+      };
+
+      prisma.product.findMany.mockResolvedValueOnce([customProd]);
+      prisma.orderItem.findMany.mockResolvedValueOnce([]); // 0 đơn
+
+      const result = await service.syncInventory();
+
+      expect(result.adjustedCount).toBe(0);
+      expect(prisma.product.update).not.toHaveBeenCalled();
+    });
   });
 
   describe('DTO validation', () => {

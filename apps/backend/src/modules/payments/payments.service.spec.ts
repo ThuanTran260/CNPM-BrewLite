@@ -145,4 +145,32 @@ describe('PaymentsService', () => {
       data: { stock: { increment: 2 }, version: { increment: 1 } },
     });
   });
+
+  it('nên gộp tồn kho theo productId khi thanh toán thất bại (forceFail=true) có nhiều size cùng món', async () => {
+    prisma.payment.findUnique.mockResolvedValueOnce(null);
+    prisma.order.findUnique.mockResolvedValueOnce({
+      id: 'order-1',
+      code: '#1043',
+      userId: 'user-1',
+      status: OrderStatus.PENDING,
+      total: 75000,
+      items: [
+        { productId: 'prod-1', qty: 1 },
+        { productId: 'prod-1', qty: 3 },
+      ],
+    });
+
+    const result = await service.processPayment('user-1', 'new-key-789', {
+      orderId: 'order-1',
+      method: PaymentMethod.BANK_CARD,
+      forceFail: true,
+    });
+
+    expect(result.status).toBe('FAILED');
+    expect(prisma.product.update).toHaveBeenCalledTimes(1);
+    expect(prisma.product.update).toHaveBeenCalledWith({
+      where: { id: 'prod-1' },
+      data: { stock: { increment: 4 }, version: { increment: 1 } },
+    });
+  });
 });

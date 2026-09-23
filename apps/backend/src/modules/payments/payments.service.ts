@@ -106,12 +106,20 @@ export class PaymentsService {
             data: { status: OrderStatus.PAYMENT_FAILED },
           });
 
-          // Hoàn trả lại tồn kho vào sản phẩm
+          // Hoàn trả lại tồn kho vào sản phẩm (gộp theo productId để cập nhật nguyên tử)
+          const totalQtyByProductId = new Map<string, number>();
           for (const item of order.items) {
+            totalQtyByProductId.set(
+              item.productId,
+              (totalQtyByProductId.get(item.productId) || 0) + item.qty,
+            );
+          }
+
+          for (const [productId, totalQty] of totalQtyByProductId.entries()) {
             await tx.product.update({
-              where: { id: item.productId },
+              where: { id: productId },
               data: {
-                stock: { increment: item.qty },
+                stock: { increment: totalQty },
                 version: { increment: 1 },
               },
             });
