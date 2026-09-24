@@ -2,13 +2,15 @@
 
 > **Môn học:** Công nghệ Phần mềm — Khoa Công nghệ Thông tin, Đại học Sài Gòn (SGU)  
 > **Quy trình:** Agile Scrum (3 Sprints — 10 Tasks)  
-> **Kiến trúc:** Monorepo (Next.js 14 App Router + NestJS 10 REST API + PostgreSQL 16 + Prisma ORM)
+> **Kiến trúc:** Monorepo (Next.js 14 App Router + NestJS 10 REST API + PostgreSQL 16 + Prisma ORM)  
+> 📑 **Tài liệu Báo cáo Đồ án Tổng hợp (12 Mục Chuẩn Chấm Điểm):** [docs/BAO_CAO_DO_AN_BREWLITE.md](docs/BAO_CAO_DO_AN_BREWLITE.md)  
+> 📐 **Tài liệu Kiến trúc & Biểu đồ Hệ thống (BFD, DFD, UseCase, ERD, Sequence):** [docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md](docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md)
 
 ---
 
 ## 1. Tổng quan hệ thống
 
-BrewLite là nền tảng đặt đồ uống và thanh toán không tiền mặt theo phong cách chuỗi bán lẻ cao cấp (lấy cảm hứng từ Starbucks Design System). Hệ thống cho phép khách hàng đặt món, tùy biến size/topping, áp dụng voucher, thanh toán không tiền mặt (Mock Payment Idempotent), theo dõi tiến trình pha chế qua Stepper thời gian thực (Polling 3s) và màn hình quầy Barista KDS 3 cột Kanban.
+BrewLite là nền tảng đặt đồ uống và thanh toán không tiền mặt theo phong cách chuỗi bán lẻ cao cấp (lấy cảm hứng từ Starbucks Design System). Hệ thống cho phép khách hàng đặt món, tùy biến size/topping, áp dụng voucher, thanh toán không tiền mặt (Mock Payment Idempotent), theo dõi tiến trình pha chế qua Stepper thời gian thực (Polling 3s), màn hình quầy Barista KDS 3 cột Kanban, cùng Cổng Quản trị viên (Admin Portal) quản lý nhân sự, kho hàng và đổi điểm thưởng Starbucks Rewards.
 
 ### Thông số cổng mạng (Port Mapping):
 * **Frontend (Next.js 14):** `http://localhost:3000`
@@ -21,8 +23,9 @@ BrewLite là nền tảng đặt đồ uống và thanh toán không tiền mặ
 
 | Vai trò (Role) | Email | Mật khẩu | Mục đích sử dụng |
 |---|---|---|---|
-| **STAFF (Nhân viên)** | `staff@brewlite.vn` | `Staff123!` | Đăng nhập vào màn hình Barista KDS `/staff` để nhận đơn, pha chế và giao món. |
-| **CUSTOMER (Khách)** | `customer@brewlite.vn` | `Customer123!` | Đăng nhập đặt hàng, áp dụng voucher, tích điểm Loyalty. |
+| **ADMIN (Quản trị)** | `admin@brewlite.vn` | `Admin123!` | Đăng nhập cổng Quản trị `/admin`: Quản lý danh sách Barista, điều chỉnh kho tức thì, đổi điểm Starbucks Rewards sang voucher. |
+| **STAFF (Nhân viên)** | `staff@brewlite.vn` | `Staff123!` | Đăng nhập màn hình Barista KDS `/staff`: Nhận đơn, bắt đầu pha, pha xong và giao đồ uống. |
+| **CUSTOMER (Khách)** | `customer@brewlite.vn` | `Customer123!` | Đăng nhập đặt hàng, áp dụng voucher, theo dõi đơn hàng, hồ sơ tích điểm Loyalty (mặc định sẵn 50 sao). |
 
 ### Mã giảm giá có sẵn (Vouchers):
 * `WELCOME10`: Giảm 10% cho đơn hàng từ 50.000đ trở lên.
@@ -107,7 +110,10 @@ npm run test:e2e
    * Nhân viên bấm **[Bắt đầu pha]** $\rightarrow$ Tab Khách tự động đổi sang `ĐANG PHA CHẾ` sau 3 giây (Polling).
    * Nhân viên bấm **[Pha xong]** $\rightarrow$ Tab Khách đổi sang `MỜI TỚI QUẦY LẤY NƯỚC`.
    * Nhân viên bấm **[Đã giao]** $\rightarrow$ Đơn hoàn tất `COMPLETED`.
-5. **Kiểm chứng Task 10:** Chạy lệnh `npm run test:e2e` trên terminal để giảng viên xem toàn bộ test nghiệp vụ Concurrency và Idempotency đều PASS.
+5. **Demo Starbucks Rewards & Cổng Admin:**
+   * Khách vào trang `/profile`: Xem số dư Sao thưởng, chọn đổi 50 Sao lấy Voucher giảm 20.000đ `RW-...` ngay lập tức.
+   * Admin đăng nhập `admin@brewlite.vn` vào `/admin`: Quản lý danh sách Barista (thêm mới tài khoản Barista), điều chỉnh tồn kho tức thì không cần reload DB, xem báo cáo tổng hợp.
+6. **Kiểm chứng Task 10 (102/102 Tests PASS):** Chạy lệnh `npm run test` & `npm run test:e2e` trên backend để giảng viên xem toàn bộ test nghiệp vụ Concurrency, Idempotency và Voucher Cleanup đều 100% Green.
 
 ---
 
