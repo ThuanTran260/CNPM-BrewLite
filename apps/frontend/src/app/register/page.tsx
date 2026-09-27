@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Coffee, Lock, Mail, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { authApi } from '../../services/api';
+import { saveAuthSession } from '../../services/auth-storage';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,9 +33,7 @@ export default function RegisterPage() {
 
     try {
       const data = await authApi.register({ email, password });
-      localStorage.setItem('brewlite_token', data.accessToken);
-      localStorage.setItem('brewlite_user_email', data.user.email);
-      localStorage.setItem('brewlite_user_role', data.user.role);
+      saveAuthSession(data.user, data.accessToken);
       router.push('/');
     } catch (err: any) {
       setError(

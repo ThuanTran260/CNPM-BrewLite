@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Coffee, ShoppingBag, User, LogOut } from 'lucide-react';
 import { useCartStore } from '../store/useCartStore';
+import { getUserEmail, getUserRole, clearAuthSession } from '../services/auth-storage';
 
 export default function Navbar() {
   const [mounted, setMounted] = useState(false);
@@ -14,15 +15,13 @@ export default function Navbar() {
 
   useEffect(() => {
     setMounted(true);
-    const email = localStorage.getItem('brewlite_user_email');
+    const email = getUserEmail('auto');
     setUserEmail(email);
-    setUserRole(localStorage.getItem('brewlite_user_role'));
+    setUserRole(getUserRole('auto'));
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem('brewlite_token');
-    localStorage.removeItem('brewlite_user_email');
-    localStorage.removeItem('brewlite_user_role');
+    clearAuthSession('auto');
     setUserEmail(null);
     setUserRole(null);
     window.location.reload();
@@ -39,7 +38,7 @@ export default function Navbar() {
           <span className="font-bold text-xl tracking-tight text-white">BrewLite</span>
         </Link>
 
-        {/* Navigation Links (Pure Customer View - No Staff/Admin Link) */}
+        {/* Navigation Links */}
         <nav className="flex items-center space-x-8 text-sm font-medium">
           <Link
             href="/"
@@ -53,13 +52,29 @@ export default function Navbar() {
           >
             Lịch sử đơn
           </Link>
-          {mounted && userRole === 'ADMIN' && (
+          {mounted && userRole === 'STAFF' && (
             <Link
-              href="/admin"
-              className="text-white/80 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
+              href="/staff"
+              className="text-amber-300 hover:text-amber-200 transition-colors font-semibold py-1"
             >
-              [Quản trị]
+              [Quầy Barista]
             </Link>
+          )}
+          {mounted && userRole === 'ADMIN' && (
+            <>
+              <Link
+                href="/staff"
+                className="text-amber-300 hover:text-amber-200 transition-colors font-semibold py-1"
+              >
+                [Quầy Barista]
+              </Link>
+              <Link
+                href="/admin"
+                className="text-gold hover:text-yellow-200 transition-colors font-semibold py-1"
+              >
+                [Quản trị]
+              </Link>
+            </>
           )}
         </nav>
 
@@ -99,8 +114,14 @@ export default function Navbar() {
                   <span className="text-xs font-semibold text-white truncate" title={userEmail}>
                     {userEmail}
                   </span>
-                  <span className="text-[9px] text-primary-light font-medium tracking-wider uppercase">
-                    Thành viên
+                  <span className="text-[9px] font-medium tracking-wider uppercase">
+                    {userRole === 'ADMIN' ? (
+                      <span className="text-gold font-bold">Quản trị viên</span>
+                    ) : userRole === 'STAFF' ? (
+                      <span className="text-amber-300 font-bold">Barista</span>
+                    ) : (
+                      <span className="text-primary-light">Thành viên</span>
+                    )}
                   </span>
                 </div>
               </Link>

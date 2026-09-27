@@ -16,6 +16,7 @@ import {
   LogOut,
 } from 'lucide-react';
 import { ordersApi } from '../../services/api';
+import { getAuthToken, getUserRole, clearAuthSession } from '../../services/auth-storage';
 
 function OrderItemsSnippet({ items }: { items: any[] }) {
   return (
@@ -44,8 +45,8 @@ export default function StaffBaristaPage() {
 
   useEffect(() => {
     setMounted(true);
-    const role = localStorage.getItem('brewlite_user_role');
-    const token = localStorage.getItem('brewlite_token');
+    const role = getUserRole('staff');
+    const token = getAuthToken('staff');
 
     if (!token) {
       router.push('/login?redirect=/staff');
@@ -93,10 +94,8 @@ export default function StaffBaristaPage() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('brewlite_token');
-    localStorage.removeItem('brewlite_user_email');
-    localStorage.removeItem('brewlite_user_role');
-    router.push('/login');
+    clearAuthSession('staff');
+    router.push('/login?redirect=/staff');
   };
 
   if (!mounted || isLoading) {

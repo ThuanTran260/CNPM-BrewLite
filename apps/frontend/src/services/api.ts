@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { ProductsResponse, Product } from '../types';
+import { getAuthToken } from './auth-storage';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
@@ -10,10 +11,10 @@ export const apiClient = axios.create({
   },
 });
 
-// Gắn Bearer Token tự động từ localStorage vào mỗi request
+// Gắn Bearer Token tự động theo vai trò/phân hệ hiện tại vào mỗi request
 apiClient.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
-    const token = localStorage.getItem('brewlite_token');
+    const token = getAuthToken('auto');
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }

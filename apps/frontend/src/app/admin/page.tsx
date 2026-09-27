@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { Coffee, ShieldAlert, Users, UtensilsCrossed } from 'lucide-react';
 import MenuStockTab from '../../components/admin/MenuStockTab';
 import StaffRbacTab from '../../components/admin/StaffRbacTab';
+import { getAuthToken, getUserRole } from '../../services/auth-storage';
 
 type AdminTab = 'menu' | 'staff';
 
@@ -17,8 +18,8 @@ export default function AdminPage() {
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem('brewlite_token');
-    const role = localStorage.getItem('brewlite_user_role');
+    const token = getAuthToken('admin');
+    const role = getUserRole('admin');
 
     if (!token) {
       router.push('/login?redirect=/admin');

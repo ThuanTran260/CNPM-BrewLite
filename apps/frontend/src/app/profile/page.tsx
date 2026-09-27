@@ -18,6 +18,7 @@ import {
   Wallet,
 } from 'lucide-react';
 import { authApi, vouchersApi, type MyVoucher, type RedeemedVoucher } from '../../services/api';
+import { getAuthToken } from '../../services/auth-storage';
 
 const REDEEM_WARNING =
   'Đổi điểm thưởng sẽ làm giảm số dư hiện tại và có thể ảnh hưởng đến thứ hạng thẻ của bạn';
@@ -101,7 +102,7 @@ export default function ProfilePage() {
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem('brewlite_token');
+    const token = getAuthToken('auto');
     if (!token) {
       router.push('/login?redirect=/profile');
     }

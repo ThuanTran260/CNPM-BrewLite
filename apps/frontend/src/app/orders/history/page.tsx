@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { Clock, ArrowRight, ShoppingBag, Coffee, ChevronRight, CheckCircle2, XCircle } from 'lucide-react';
 import { ordersApi } from '../../../services/api';
+import { getAuthToken } from '../../../services/auth-storage';
 
 export default function OrderHistoryPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function OrderHistoryPage() {
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem('brewlite_token');
+    const token = getAuthToken('auto');
     if (!token) {
       router.push('/login?redirect=/orders/history');
     }

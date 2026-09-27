@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { AlertCircle, AlertTriangle, Check, ShieldAlert } from 'lucide-react';
 import { adminApi, type AdminRole, type AdminUser } from '../../services/api';
+import { getUserEmail } from '../../services/auth-storage';
 
 interface Notice {
   type: 'success' | 'error';
@@ -41,7 +42,7 @@ export default function StaffRbacTab() {
 
   useEffect(() => {
     setMounted(true);
-    setCurrentEmail(localStorage.getItem('brewlite_user_email'));
+    setCurrentEmail(getUserEmail('admin'));
   }, []);
 
   const { data: users = [], isLoading, isError } = useQuery({

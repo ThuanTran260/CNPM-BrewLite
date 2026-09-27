@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { CreditCard, Wallet, ShieldCheck, ArrowRight, AlertTriangle, AlertCircle, CheckCircle, Coffee, Sparkles } from 'lucide-react';
 import { useCartStore } from '../../store/useCartStore';
 import { ordersApi, paymentsApi, vouchersApi } from '../../services/api';
+import { getAuthToken } from '../../services/auth-storage';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -23,7 +24,7 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     setMounted(true);
-    const token = localStorage.getItem('brewlite_token');
+    const token = getAuthToken('auto');
     if (!token) {
       router.push('/login?redirect=/checkout');
       return;

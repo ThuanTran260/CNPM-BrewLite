@@ -13,6 +13,7 @@ import {
   EyeOff,
 } from 'lucide-react';
 import { authApi } from '../../services/api';
+import { saveAuthSession } from '../../services/auth-storage';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -37,9 +38,7 @@ export default function LoginPage() {
 
     try {
       const data = await authApi.login({ email: targetEmail, password: targetPassword });
-      localStorage.setItem('brewlite_token', data.accessToken);
-      localStorage.setItem('brewlite_user_email', data.user.email);
-      localStorage.setItem('brewlite_user_role', data.user.role);
+      saveAuthSession(data.user, data.accessToken);
 
       // Ưu tiên quay lại trang đã yêu cầu (?redirect=...), nếu không thì
       // điều hướng theo vai trò: ADMIN -> /admin, STAFF -> /staff, còn lại -> /
