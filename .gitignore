@@ -41,3 +41,6 @@ apps/**/package-lock.json
 # Script vendors
 scripts/vendor/
 
+# Documentation
+docs/
+

@@ -1,10 +1,8 @@
 # ☕ BrewLite — Cashless Coffee Ordering System (VER 1.0)
 
 > **Môn học:** Công nghệ Phần mềm — Khoa Công nghệ Thông tin, Đại học Sài Gòn (SGU)  
-> **Quy trình:** Agile Scrum (3 Sprints — 10 Tasks)  
-> **Kiến trúc:** Monorepo (Next.js 14 App Router + NestJS 10 REST API + PostgreSQL 16 + Prisma ORM)  
-> 📑 **Tài liệu Báo cáo Đồ án Tổng hợp (12 Mục Chuẩn Chấm Điểm):** [docs/BAO_CAO_DO_AN_BREWLITE.md](docs/BAO_CAO_DO_AN_BREWLITE.md)  
-> 📐 **Tài liệu Kiến trúc & Biểu đồ Hệ thống (BFD, DFD, UseCase, ERD, Sequence):** [docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md](docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md)
+> **Quy trình:** Agile Scrum (3 Sprints)  
+> **Kiến trúc:** Monorepo (Next.js 14 App Router + NestJS 10 REST API + PostgreSQL 16 + Prisma ORM)
 
 ---
 
@@ -82,7 +80,7 @@ npm run dev:frontend
 
 ---
 
-## 5. Chạy kiểm thử tự động (Unit & E2E Tests - Task 10)
+## 5. Chạy kiểm thử tự động (Unit & E2E Tests)
 
 Hệ thống cung cấp đầy đủ 4 bộ kiểm thử chuyên sâu nhằm chứng minh tính đúng đắn của nghiệp vụ:
 1. `state-machine.spec.ts`: Chặn mọi chuyển trạng thái bất hợp pháp.
@@ -113,19 +111,6 @@ npm run test:e2e
 5. **Demo Starbucks Rewards & Cổng Admin:**
    * Khách vào trang `/profile`: Xem số dư Sao thưởng, chọn đổi 50 Sao lấy Voucher giảm 20.000đ `RW-...` ngay lập tức.
    * Admin đăng nhập `admin@brewlite.vn` vào `/admin`: Quản lý danh sách Barista (thêm mới tài khoản Barista), điều chỉnh tồn kho tức thì không cần reload DB, xem báo cáo tổng hợp.
-6. **Kiểm chứng Task 10 (102/102 Tests PASS):** Chạy lệnh `npm run test` & `npm run test:e2e` trên backend để giảng viên xem toàn bộ test nghiệp vụ Concurrency, Idempotency và Voucher Cleanup đều 100% Green.
+6. **Kiểm chứng tính đúng đắn qua bộ kiểm thử (102/102 Tests PASS):** Chạy lệnh `npm run test` & `npm run test:e2e` trên backend để kiểm tra toàn bộ test nghiệp vụ Concurrency, Idempotency và Voucher Cleanup đều 100% Green.
 
----
-
-## 7. Tài liệu Kiến trúc & Đặc tả Thiết kế Hệ thống
-
-Toàn bộ tài liệu phân tích và thiết kế hệ thống chuẩn học thuật (Academic-Grade Architecture Spec) được biên soạn tại [docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md](docs/SYSTEM_ARCHITECTURE_DIAGRAMS.md) và hướng dẫn sử dụng Draw.io tại [docs/DRAWIO_GUIDE.md](docs/DRAWIO_GUIDE.md), bao gồm:
-1. **BFD (Business Function Decomposition):** Sơ đồ phân rã chức năng 3 cấp (F0.0 $\rightarrow$ F1..F6 $\rightarrow$ Fx.y) và Từ điển 22 chức năng nghiệp vụ.
-2. **DFD Lv0 (Context Diagram):** Sơ đồ luồng dữ liệu mức ngữ cảnh với 5 tác nhân ngoài và 10 luồng dữ liệu vào/ra.
-3. **DFD Lv1 (Detailed Data Flow):** Sơ đồ luồng dữ liệu mức 1 phân tầng (Anti-Spaghetti), gồm 6 tiến trình và 6 kho dữ liệu vật lý (`users`, `products`, `orders`, `order_items`, `payments`, `vouchers`).
-4. **Use Case Diagrams (Phân rã 2 cấp):** Sơ đồ tổng quan cấp cao (4 Actors - 5 Packages) cùng 3 sơ đồ phân rã chi tiết cho Khách hàng, Barista KDS, Quản trị viên & Cron; kèm bảng đặc tả kịch bản chuẩn RUP cho UC-01, UC-02, UC-03.
-5. **ERD & Data Dictionary:** Sơ đồ quan hệ thực thể chuẩn hóa khớp 100% `schema.prisma` kèm từ điển dữ liệu chi tiết từng cột và kiểu Enum.
-6. **Sequence Diagrams:** Sơ đồ tuần tự cho 2 luồng cốt lõi: Đặt hàng trừ kho Optimistic Locking (`POST /api/orders`) và Thanh toán Idempotent Replay, Race Defense `P2002` (`POST /api/payments`).
-7. **Order State Machine:** Sơ đồ máy trạng thái và ma trận chuyển đổi 2 chiều khớp 100% với `StateMachineService` trong NestJS backend.
-8. **Kho biểu đồ Vector & Draw.io:** Toàn bộ 11 biểu đồ được xuất sẵn mã nguồn độc lập tại [docs/diagrams/](docs/diagrams/) và bộ ảnh vector SVG siêu nét tại [docs/diagrams/svg/](docs/diagrams/svg/) hỗ trợ phóng to 1.000% không vỡ hạt.
 
