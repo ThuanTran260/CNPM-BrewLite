@@ -180,7 +180,7 @@ export default function CheckoutPage() {
                 </div>
               </div>
 
-              {/* Hộp kiểm thử ngoại lệ (Dành riêng cho Thầy/Nhóm chấm Task 8 & 10) */}
+              {/* Hộp kiểm thử ngoại lệ thanh toán */}
               <div className="mt-6 pt-5 border-t border-ceramic">
                 <div className="bg-gold-light/40 border border-gold/40 rounded-2xl p-4">
                   <div className="flex items-start space-x-3">
@@ -194,7 +194,7 @@ export default function CheckoutPage() {
                     <label htmlFor="forceFail" className="text-xs text-house cursor-pointer">
                       <span className="font-bold block text-red-700">Giả lập lỗi thanh toán (Test Mode)</span>
                       <span className="text-ink-muted block mt-0.5">
-                        Tick vào ô này để kiểm thử kịch bản thanh toán thất bại (thẻ không đủ tiền): đơn hàng sẽ chuyển sang trạng thái <code>PAYMENT_FAILED</code> và hoàn lại tồn kho đúng chuẩn Task 8 & 10.
+                        Tick vào ô này để kiểm thử kịch bản thanh toán thất bại (thẻ không đủ tiền): đơn hàng sẽ chuyển sang trạng thái <code>PAYMENT_FAILED</code> và hoàn lại tồn kho.
                       </span>
                     </label>
                   </div>

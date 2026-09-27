@@ -90,7 +90,7 @@ export class PaymentsService {
     try {
       return await this.prisma.$transaction(async (tx) => {
         if (dto.forceFail) {
-          // Kịch bản GIẢ LẬP LỖI (Để demo kiểm thử Task 8 & 10)
+          // Kịch bản GIẢ LẬP LỖI (Để demo kiểm thử thanh toán thất bại)
           await tx.payment.create({
             data: {
               orderId: order.id,
