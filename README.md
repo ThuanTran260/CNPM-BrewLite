@@ -106,7 +106,7 @@ npm run test:e2e
    * Tab 1: Khách đang ở màn hình tracking `#1042`.
    * Tab 2: Nhân viên đăng nhập `staff@brewlite.vn` vào `/staff`, thấy đơn `#1042` ở cột `[CẦN PHA]`.
    * Nhân viên bấm **[Bắt đầu pha]** $\rightarrow$ Tab Khách tự động đổi sang `ĐANG PHA CHẾ` sau 3 giây (Polling).
-   * Nhân viên bấm **[Pha xong]** $\rightarrow$ Tab Khách đổi sang `MỜI TỚI QUẦY LẤY NƯỚC`.
+   * Nhân viên bấm **[Pha xong]** $\rightarrow$ Tab Khách đổi sang `ĐANG CHUẨN BỊ GIAO ĐƠN`.
    * Nhân viên bấm **[Đã giao]** $\rightarrow$ Đơn hoàn tất `COMPLETED`.
 5. **Demo Starbucks Rewards & Cổng Admin:**
    * Khách vào trang `/profile`: Xem số dư Sao thưởng, chọn đổi 50 Sao lấy Voucher giảm 20.000đ `RW-...` ngay lập tức.

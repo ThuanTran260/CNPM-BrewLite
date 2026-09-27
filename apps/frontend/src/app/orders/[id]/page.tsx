@@ -85,7 +85,7 @@ export default function OrderTrackingPage() {
   const steps = [
     { key: 'PAID', label: 'Đã thanh toán', desc: 'Đơn đã xác nhận' },
     { key: 'PREPARING', label: 'Đang pha chế', desc: 'Barista đang chuẩn bị' },
-    { key: 'READY', label: 'Sẵn sàng lấy món', desc: 'Mời tới quầy nhận nước' },
+    { key: 'READY', label: 'Sẵn sàng lấy món', desc: 'Đang chuẩn bị giao đơn' },
     { key: 'COMPLETED', label: 'Hoàn tất', desc: 'Đã giao thành công' },
   ];
 
@@ -242,7 +242,7 @@ export default function OrderTrackingPage() {
               {order.status === 'READY' && (
                 <div className="mt-6 p-4 rounded-2xl bg-gold-light border border-gold text-house text-sm font-bold flex items-center justify-center space-x-2 animate-pulse shadow-soft">
                   <Sparkles className="w-5 h-5 text-gold shrink-0" />
-                  <span>Món của bạn đã sẵn sàng! Mời bạn tới quầy nhận nước với mã {order.code}.</span>
+                  <span>Món của bạn đã sẵn sàng! Đang chuẩn bị giao đơn với mã {order.code}.</span>
                 </div>
               )}
             </div>
