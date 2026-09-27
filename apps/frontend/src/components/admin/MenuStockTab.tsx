@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { AlertCircle, Check, Coffee, Plus, RefreshCw, X } from 'lucide-react';
+import { AlertCircle, Check, Coffee, Plus, RefreshCw, X, Pencil, Trash2 } from 'lucide-react';
 import { productsApi } from '../../services/api';
 import type { Product } from '../../types';
 
@@ -45,6 +45,11 @@ export default function MenuStockTab() {
   const [form, setForm] = useState<NewDishForm>(EMPTY_FORM);
   const [formError, setFormError] = useState<string | null>(null);
 
+  // Trạng thái modal chỉnh sửa toàn diện
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [editForm, setEditForm] = useState<NewDishForm>(EMPTY_FORM);
+  const [editFormError, setEditFormError] = useState<string | null>(null);
+
   const { data, isLoading, isError } = useQuery({
     queryKey: ['admin-products'],
     queryFn: productsApi.getProducts,
@@ -69,6 +74,42 @@ export default function MenuStockTab() {
         (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
         'Cập nhật thất bại. Vui lòng thử lại sau.';
       setRowError((prev) => ({ ...prev, [variables.id]: message }));
+    },
+  });
+
+  const fullUpdateMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: Partial<NewDishForm> }) =>
+      productsApi.updateProduct(id, {
+        name: data.name,
+        price: Number(data.price),
+        stock: Number(data.stock),
+        description: data.description,
+        imageUrl: data.imageUrl,
+      }),
+    onSuccess: (updated) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      setEditingProduct(null);
+      setNotice({ type: 'success', message: `Đã cập nhật thông tin món "${updated.name}" thành công!` });
+    },
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Cập nhật món thất bại. Vui lòng thử lại sau.';
+      setEditFormError(message);
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: productsApi.deleteProduct,
+    onSuccess: (res) => {
+      queryClient.invalidateQueries({ queryKey: ['admin-products'] });
+      setNotice({ type: 'success', message: res.message || 'Đã xóa món thành công!' });
+    },
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+        'Xóa món thất bại. Vui lòng thử lại sau.';
+      setNotice({ type: 'error', message });
     },
   });
 
@@ -175,6 +216,61 @@ export default function MenuStockTab() {
     });
   };
 
+  const handleOpenEditModal = (product: Product) => {
+    setEditingProduct(product);
+    setEditForm({
+      name: product.name,
+      price: String(product.price),
+      stock: String(product.stock),
+      description: product.description || '',
+      imageUrl: product.imageUrl || '',
+    });
+    setEditFormError(null);
+  };
+
+  const handleSaveEditModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProduct) return;
+    setEditFormError(null);
+
+    if (!editForm.name.trim()) {
+      setEditFormError('Vui lòng nhập tên món.');
+      return;
+    }
+
+    const price = Number(editForm.price);
+    const stock = Number(editForm.stock);
+
+    if (editForm.price.trim() === '' || !Number.isFinite(price) || price < 0) {
+      setEditFormError('Giá bán phải là số hợp lệ, tối thiểu là 0 (Min 0).');
+      return;
+    }
+
+    if (editForm.stock.trim() === '' || !Number.isFinite(stock) || stock < 0) {
+      setEditFormError('Tồn kho phải là số hợp lệ, tối thiểu là 0 (Min 0).');
+      return;
+    }
+
+    setNotice(null);
+    fullUpdateMutation.mutate({
+      id: editingProduct.id,
+      data: {
+        name: editForm.name.trim(),
+        price: String(price),
+        stock: String(stock),
+        description: editForm.description.trim(),
+        imageUrl: editForm.imageUrl.trim(),
+      },
+    });
+  };
+
+  const handleDeleteProduct = (product: Product) => {
+    if (window.confirm(`Bạn có chắc chắn muốn xóa món "${product.name}" khỏi thực đơn không?`)) {
+      setNotice(null);
+      deleteMutation.mutate(product.id);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-16">
@@ -252,7 +348,7 @@ export default function MenuStockTab() {
               <th className="text-left font-bold px-4 py-3 w-36">Giá bán (đ)</th>
               <th className="text-left font-bold px-4 py-3 w-32">Tồn kho</th>
               <th className="text-left font-bold px-4 py-3 w-32">Trạng thái</th>
-              <th className="text-right font-bold px-4 py-3 w-28">Thao tác</th>
+              <th className="text-right font-bold px-4 py-3 w-44">Thao tác</th>
             </tr>
           </thead>
           <tbody>
@@ -339,14 +435,36 @@ export default function MenuStockTab() {
                       )}
                     </td>
                     <td className="px-4 py-3 text-right">
-                      <button
-                        type="button"
-                        disabled={updateMutation.isPending}
-                        onClick={() => handleSaveRow(product)}
-                        className="btn-pill px-4 py-1.5 bg-house hover:bg-black text-white text-xs font-bold shadow-sm"
-                      >
-                        {updateMutation.isPending ? 'Đang lưu...' : 'Lưu'}
-                      </button>
+                      <div className="flex items-center justify-end space-x-1.5">
+                        <button
+                          type="button"
+                          disabled={updateMutation.isPending}
+                          onClick={() => handleSaveRow(product)}
+                          className="btn-pill px-3 py-1.5 bg-house hover:bg-black text-white text-xs font-bold shadow-sm"
+                          title="Lưu nhanh giá & tồn kho dòng này"
+                        >
+                          {updateMutation.isPending ? '...' : 'Lưu'}
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditModal(product)}
+                          className="p-1.5 rounded-lg bg-canvas hover:bg-ceramic text-house hover:text-primary-accent border border-ceramic transition-colors"
+                          title="Sửa toàn bộ thông tin món"
+                          aria-label={`Sửa món ${product.name}`}
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        <button
+                          type="button"
+                          disabled={deleteMutation.isPending}
+                          onClick={() => handleDeleteProduct(product)}
+                          className="p-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 transition-colors disabled:opacity-50"
+                          title="Xóa món khỏi thực đơn"
+                          aria-label={`Xóa món ${product.name}`}
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -468,6 +586,139 @@ export default function MenuStockTab() {
                   className="btn-pill flex-1 py-2.5 bg-primary-accent hover:bg-primary-hover text-white text-sm font-bold shadow-md"
                 >
                   {createMutation.isPending ? 'Đang thêm...' : 'Thêm món'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Chỉnh Sửa Món */}
+      {editingProduct && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Chỉnh sửa món ${editingProduct.name}`}
+        >
+          <div className="bg-white rounded-2xl shadow-float max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-extrabold text-house">Chỉnh sửa thức uống</h3>
+              <button
+                type="button"
+                onClick={() => setEditingProduct(null)}
+                className="p-1.5 rounded-full text-ink-muted hover:bg-canvas transition-colors"
+                aria-label="Đóng"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {editFormError && (
+              <div className="mt-3 p-3 rounded-xl bg-red-50 border border-red-200 flex items-start space-x-2 text-xs text-red-700">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>{editFormError}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleSaveEditModal} className="mt-4 space-y-3.5">
+              <div>
+                <label className="block text-xs font-bold text-house uppercase tracking-wider mb-1.5">
+                  Tên món <span className="text-red-600">*</span>
+                </label>
+                <input
+                  type="text"
+                  value={editForm.name}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, name: e.target.value }))}
+                  placeholder="Ví dụ: Cà Phê Sữa Đá"
+                  className="block w-full px-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-bold text-house uppercase tracking-wider mb-1.5">
+                    Giá bán (đ) <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editForm.price}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, price: e.target.value }))}
+                    placeholder="35000"
+                    className="block w-full px-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-house uppercase tracking-wider mb-1.5">
+                    Tồn kho <span className="text-red-600">*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={editForm.stock}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, stock: e.target.value }))}
+                    placeholder="100"
+                    className="block w-full px-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-house uppercase tracking-wider mb-1.5">
+                  Mô tả <span className="text-ink-muted font-medium normal-case">(không bắt buộc)</span>
+                </label>
+                <textarea
+                  value={editForm.description}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, description: e.target.value }))}
+                  placeholder="Mô tả chi tiết về đồ uống..."
+                  rows={2}
+                  className="block w-full px-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-house uppercase tracking-wider mb-1.5">
+                  Ảnh minh họa (URL){' '}
+                  <span className="text-ink-muted font-medium normal-case">(không bắt buộc)</span>
+                </label>
+                <input
+                  type="text"
+                  value={editForm.imageUrl}
+                  onChange={(e) => setEditForm((prev) => ({ ...prev, imageUrl: e.target.value }))}
+                  placeholder="https://images.unsplash.com/..."
+                  className="block w-full px-3.5 py-2.5 bg-canvas/40 border border-ceramic rounded-xl text-sm text-ink placeholder-ink-muted/50 focus:outline-none focus:ring-2 focus:ring-primary-accent/20 focus:border-primary-accent"
+                />
+                {editForm.imageUrl && (
+                  <div className="mt-2 flex items-center space-x-2 p-2 bg-canvas/50 rounded-xl border border-ceramic">
+                    <img
+                      src={editForm.imageUrl}
+                      alt="Xem trước ảnh"
+                      className="w-10 h-10 rounded-lg object-cover bg-ceramic/50"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                    <span className="text-[11px] text-ink-muted truncate">Xem trước ảnh minh họa</span>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button
+                  type="button"
+                  disabled={fullUpdateMutation.isPending}
+                  onClick={() => setEditingProduct(null)}
+                  className="btn-pill flex-1 py-2.5 bg-canvas hover:bg-ceramic text-house text-sm font-bold border border-ceramic"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  disabled={fullUpdateMutation.isPending}
+                  className="btn-pill flex-1 py-2.5 bg-house hover:bg-black text-white text-sm font-bold shadow-md"
+                >
+                  {fullUpdateMutation.isPending ? 'Đang cập nhật...' : 'Lưu thay đổi'}
                 </button>
               </div>
             </form>

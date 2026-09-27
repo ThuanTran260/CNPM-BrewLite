@@ -43,6 +43,11 @@ export const productsApi = {
     return response.data;
   },
 
+  deleteProduct: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const response = await apiClient.delete<{ success: boolean; message: string }>(`/products/${id}`);
+    return response.data;
+  },
+
   syncInventory: async (): Promise<{
     message: string;
     adjustedCount: number;

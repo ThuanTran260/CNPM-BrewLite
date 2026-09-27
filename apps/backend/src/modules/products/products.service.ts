@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, Logger } from '@nestjs/common';
 import { OrderStatus } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { SIZE_PRICES, TOPPING_PRICES } from '../../common/constants/drink-options';
@@ -103,6 +103,35 @@ export class ProductsService {
         ...(bumpVersion ? { version: { increment: 1 } } : {}),
       },
     });
+  }
+
+  async deleteProduct(id: string) {
+    const existing = await this.prisma.product.findUnique({
+      where: { id },
+    });
+
+    if (!existing) {
+      throw new NotFoundException(`Không tìm thấy sản phẩm có ID: ${id}`);
+    }
+
+    const orderItemsCount = await this.prisma.orderItem.count({
+      where: { productId: id },
+    });
+
+    if (orderItemsCount > 0) {
+      throw new BadRequestException(
+        `Không thể xóa món "${existing.name}" vì đã có ${orderItemsCount} đơn hàng liên quan trong hệ thống. Hãy chỉnh tồn kho về 0 để ngừng phục vụ.`
+      );
+    }
+
+    await this.prisma.product.delete({
+      where: { id },
+    });
+
+    return {
+      success: true,
+      message: `Đã xóa món "${existing.name}" khỏi thực đơn`,
+    };
   }
 
   async syncInventory() {

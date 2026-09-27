@@ -24,9 +24,11 @@ const mockPrismaService = {
     findUnique: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
+    delete: jest.fn().mockResolvedValue(mockProduct),
   },
   orderItem: {
     findMany: jest.fn().mockResolvedValue([]),
+    count: jest.fn().mockResolvedValue(0),
   },
   $transaction: jest.fn((cb) => cb(mockPrismaService)),
 };
@@ -302,4 +304,37 @@ describe('ProductsService', () => {
       expect(fields).toContain('stock');
     });
   });
+
+  describe('deleteProduct', () => {
+    it('nên ném NotFoundException nếu không tìm thấy món', async () => {
+      prisma.product.findUnique.mockResolvedValue(null);
+
+      await expect(service.deleteProduct('non-existent-id')).rejects.toThrow(
+        NotFoundException,
+      );
+    });
+
+    it('nên ném BadRequestException nếu món đã có đơn hàng', async () => {
+      prisma.product.findUnique.mockResolvedValue(mockProduct);
+      prisma.orderItem.count.mockResolvedValue(3);
+
+      await expect(service.deleteProduct(mockProduct.id)).rejects.toThrow(
+        'Không thể xóa món',
+      );
+    });
+
+    it('nên xóa thành công nếu món tồn tại và chưa có đơn hàng liên kết', async () => {
+      prisma.product.findUnique.mockResolvedValue(mockProduct);
+      prisma.orderItem.count.mockResolvedValue(0);
+      prisma.product.delete.mockResolvedValue(mockProduct);
+
+      const result = await service.deleteProduct(mockProduct.id);
+
+      expect(result.success).toBe(true);
+      expect(prisma.product.delete).toHaveBeenCalledWith({
+        where: { id: mockProduct.id },
+      });
+    });
+  });
 });
+

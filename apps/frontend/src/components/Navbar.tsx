@@ -40,39 +40,19 @@ export default function Navbar() {
 
         {/* Navigation Links */}
         <nav className="flex items-center space-x-8 text-sm font-medium">
-          <Link
-            href="/"
-            className="text-white hover:text-primary-light transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary-light after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
-          >
-            Thực đơn
-          </Link>
-          <Link
-            href="/orders/history"
-            className="text-white/80 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
-          >
-            Lịch sử đơn
-          </Link>
-          {mounted && userRole === 'STAFF' && (
-            <Link
-              href="/staff"
-              className="text-amber-300 hover:text-amber-200 transition-colors font-semibold py-1"
-            >
-              [Quầy Barista]
-            </Link>
-          )}
-          {mounted && userRole === 'ADMIN' && (
+          {(!mounted || (userRole !== 'ADMIN' && userRole !== 'STAFF')) && (
             <>
               <Link
-                href="/staff"
-                className="text-amber-300 hover:text-amber-200 transition-colors font-semibold py-1"
+                href="/"
+                className="text-white hover:text-primary-light transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-primary-light after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
               >
-                [Quầy Barista]
+                Thực đơn
               </Link>
               <Link
-                href="/admin"
-                className="text-gold hover:text-yellow-200 transition-colors font-semibold py-1"
+                href="/orders/history"
+                className="text-white/80 hover:text-white transition-colors relative py-1 after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.5 after:bg-white after:scale-x-0 hover:after:scale-x-100 after:transition-transform"
               >
-                [Quản trị]
+                Lịch sử đơn
               </Link>
             </>
           )}
@@ -80,19 +60,21 @@ export default function Navbar() {
 
         {/* Actions (Cart & High-End Account Profile) */}
         <div className="flex items-center space-x-4">
-          {/* Cart Icon */}
-          <Link
-            href="/cart"
-            className="relative p-2.5 rounded-full hover:bg-white/10 active:scale-95 transition-all text-white flex items-center justify-center"
-            aria-label="Giỏ hàng"
-          >
-            <ShoppingBag className="w-5 h-5" />
-            {mounted && totalItems > 0 && (
-              <span className="absolute -top-1 -right-1 bg-primary-accent text-white text-[11px] font-extrabold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center border-2 border-house shadow-sm animate-scale">
-                {totalItems}
-              </span>
-            )}
-          </Link>
+          {/* Cart Icon (Chỉ hiển thị cho Khách hàng / khách vãng lai) */}
+          {(!mounted || (userRole !== 'ADMIN' && userRole !== 'STAFF')) && (
+            <Link
+              href="/cart"
+              className="relative p-2.5 rounded-full hover:bg-white/10 active:scale-95 transition-all text-white flex items-center justify-center"
+              aria-label="Giỏ hàng"
+            >
+              <ShoppingBag className="w-5 h-5" />
+              {mounted && totalItems > 0 && (
+                <span className="absolute -top-1 -right-1 bg-primary-accent text-white text-[11px] font-extrabold rounded-full h-5 min-w-[20px] px-1 flex items-center justify-center border-2 border-house shadow-sm animate-scale">
+                  {totalItems}
+                </span>
+              )}
+            </Link>
+          )}
 
           {/* High-End Account Profile Pill (Zero CLS Reserved Container) */}
           {!mounted ? (
