@@ -31,25 +31,45 @@ BrewLite là nền tảng đặt đồ uống và thanh toán không tiền mặ
 
 ---
 
-## 3. Hướng dẫn khởi chạy nhanh bằng Docker Compose
+## 3. Hướng dẫn khởi chạy nhanh bằng Docker (1 lệnh duy nhất)
 
-Yêu cầu máy tính đã cài đặt **Docker Desktop**.
+Yêu cầu máy tính đã cài đặt **Docker Desktop** (đảm bảo Docker engine đang bật).
+
+### 🚀 Khởi động toàn bộ hệ thống:
+Hệ thống sử dụng Docker Multi-Stage Build độc lập, tự động chạy migration database và nạp dữ liệu mẫu (Seed) ngay khi backend khởi động:
 
 ```bash
-# 1. Khởi động toàn bộ 3 dịch vụ (Postgres, Backend, Frontend)
+# Cách 1: Sử dụng Docker Compose chuẩn
 docker compose up -d --build
 
-# 2. Kiểm tra trạng thái các container
-docker compose ps
-
-# 3. Xem log vận hành của backend
-docker compose logs -f backend
+# Cách 2: Sử dụng lệnh npm shortcut
+npm run docker:up
 ```
 
-Truy cập:
-* Giao diện Khách hàng: [http://localhost:3000](http://localhost:3000)
-* Màn hình Barista KDS: [http://localhost:3000/staff](http://localhost:3000/staff)
-* Kiểm tra Healthcheck Backend: [http://localhost:3001/api/health](http://localhost:3001/api/health)
+### 📋 Các lệnh quản trị tiện ích:
+```bash
+# Xem log trực tiếp của cả hệ thống (hoặc riêng backend)
+docker compose logs -f
+# hoặc: docker compose logs -f backend
+
+# Kiểm tra trạng thái các container
+docker compose ps
+
+# Dừng và hạ toàn bộ container an toàn
+docker compose down
+# hoặc: npm run docker:down
+
+# Khởi động lại hoặc cập nhật code mới
+docker compose up -d --build
+```
+
+### 🌐 Địa chỉ truy cập dịch vụ:
+* **Giao diện Khách hàng & Cửa hàng:** [http://localhost:3000](http://localhost:3000)
+* **Trang Đăng nhập (Có sẵn 3 nút điền nhanh Demo):** [http://localhost:3000/login](http://localhost:3000/login)
+* **Cổng Quản trị Admin:** [http://localhost:3000/admin](http://localhost:3000/admin)
+* **Màn hình Barista KDS:** [http://localhost:3000/staff](http://localhost:3000/staff)
+* **API Healthcheck Backend:** [http://localhost:3001/api/health](http://localhost:3001/api/health)
+* **Swagger/REST API Endpoints:** [http://localhost:3001/api/products](http://localhost:3001/api/products)
 
 ---
 
